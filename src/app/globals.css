@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply antialiased; }
+
+  /* Dashboard background */
+  html { @apply bg-gray-50 dark:bg-zinc-950; }
+}
+
+/* Dot grid — apenas em páginas de marketing */
+.dot-pattern {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-attachment: fixed;
+}
+.dark .dot-pattern {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+}
+
+/* Print ─ PDF de orçamento */
+@media print {
+  .no-print { display: none !important; }
+
+  /* Esconde tudo, depois mostra só o conteúdo marcado */
+  body * { visibility: hidden; }
+  .quote-print-area,
+  .quote-print-area * { visibility: visible; }
+  .quote-print-area {
+    position: fixed !important;
+    inset: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
+    background: white !important;
+    color: #111 !important;
+    padding: 40px !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .quote-print-area .print-border { border-color: #e5e7eb !important; }
+  .quote-print-area .print-muted  { color: #6b7280 !important; }
+
+  @page { margin: 0; size: A4; }
+}
+
+/* Racing stripe — topo das páginas de marketing */
+.race-stripe::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #F59E0B 30%, #F59E0B 70%, transparent 100%);
+  z-index: 9999;
+  pointer-events: none;
+}

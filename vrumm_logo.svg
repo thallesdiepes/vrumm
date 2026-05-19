@@ -1,0 +1,61 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="500" fill="#09090b"/>
+
+  <!-- === VERSÃO PRINCIPAL: horizontal === -->
+  <text x="60" y="62" font-size="10" fill="#52525b" letter-spacing="3" font-weight="600" font-family="system-ui, sans-serif">VERSÃO PRINCIPAL</text>
+
+  <!-- Ícone: quadrado âmbar arredondado com dois chevrons de velocidade -->
+  <rect x="60" y="75" width="60" height="60" rx="16" fill="#F59E0B"/>
+  <!-- chevron traseiro (fantasma) -->
+  <polyline points="72,123 84,99 96,123" stroke="#09090b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.3"/>
+  <!-- chevron dianteiro -->
+  <polyline points="84,123 96,99 108,123" stroke="#09090b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Wordmark -->
+  <text x="138" y="123" font-size="44" font-weight="900" fill="#fafafa" letter-spacing="-2" font-family="system-ui, -apple-system, 'Arial Black', sans-serif">VRUMM</text>
+
+  <!-- === DIVISOR === -->
+  <line x1="60" y1="180" x2="740" y2="180" stroke="#27272a" stroke-width="1"/>
+
+  <!-- === ÍCONE SOLO === -->
+  <text x="60" y="222" font-size="10" fill="#52525b" letter-spacing="3" font-weight="600" font-family="system-ui, sans-serif">ÍCONE / APP</text>
+  <rect x="60" y="234" width="76" height="76" rx="22" fill="#F59E0B"/>
+  <polyline points="75,296 91,266 107,296" stroke="#09090b" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.28"/>
+  <polyline points="91,296 107,266 123,296" stroke="#09090b" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- === VERSÃO COMPACTA === -->
+  <text x="200" y="222" font-size="10" fill="#52525b" letter-spacing="3" font-weight="600" font-family="system-ui, sans-serif">COMPACTO</text>
+  <rect x="200" y="234" width="52" height="52" rx="14" fill="#F59E0B"/>
+  <polyline points="210,274 220,256 230,274" stroke="#09090b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.28"/>
+  <polyline points="220,274 230,256 240,274" stroke="#09090b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="200" y="310" font-size="20" font-weight="900" fill="#fafafa" letter-spacing="-1" font-family="system-ui, -apple-system, 'Arial Black', sans-serif">VRUMM</text>
+
+  <!-- === VERSÃO SÓ TIPO === -->
+  <text x="360" y="222" font-size="10" fill="#52525b" letter-spacing="3" font-weight="600" font-family="system-ui, sans-serif">WORDMARK</text>
+  <!-- ponto âmbar no duplo M -->
+  <text x="360" y="292" font-size="52" font-weight="900" fill="#fafafa" letter-spacing="-2.5" font-family="system-ui, -apple-system, 'Arial Black', sans-serif">VRUMM</text>
+  <!-- underline âmbar velocidade -->
+  <rect x="360" y="300" width="280" height="4" rx="2" fill="#F59E0B"/>
+
+  <!-- === DIVISOR === -->
+  <line x1="60" y1="345" x2="740" y2="345" stroke="#27272a" stroke-width="1"/>
+
+  <!-- === FUNDO CLARO === -->
+  <rect x="60" y="360" width="680" height="115" rx="18" fill="#f9fafb"/>
+  <text x="90" y="388" font-size="10" fill="#a1a1aa" letter-spacing="3" font-weight="600" font-family="system-ui, sans-serif">FUNDO CLARO</text>
+
+  <rect x="90" y="396" width="56" height="56" rx="15" fill="#F59E0B"/>
+  <polyline points="101,440 113,418 125,440" stroke="#1c1917" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.28"/>
+  <polyline points="113,440 125,418 137,440" stroke="#1c1917" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <text x="162" y="438" font-size="40" font-weight="900" fill="#09090b" letter-spacing="-2" font-family="system-ui, -apple-system, 'Arial Black', sans-serif">VRUMM</text>
+
+  <!-- Swatches de cor -->
+  <rect x="560" y="396" width="30" height="30" rx="8" fill="#F59E0B"/>
+  <rect x="600" y="396" width="30" height="30" rx="8" fill="#09090b"/>
+  <rect x="640" y="396" width="30" height="30" rx="8" fill="#fafafa" stroke="#e4e4e7" stroke-width="1"/>
+
+  <text x="560" y="445" font-size="9" fill="#a1a1aa" font-family="system-ui, sans-serif">#F59E0B</text>
+  <text x="597" y="445" font-size="9" fill="#a1a1aa" font-family="system-ui, sans-serif">#09090B</text>
+  <text x="634" y="445" font-size="9" fill="#a1a1aa" font-family="system-ui, sans-serif">#FAFAFA</text>
+</svg>
