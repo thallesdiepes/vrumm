@@ -1,0 +1,13 @@
+.git
+.next
+node_modules
+.env
+.env.local
+.env*.local
+npm-debug.log*
+README.md
+*.pdf
+diagrama_casos_de_uso.png
+vrumm_logo.svg
+vrumm_logo_final.svg
+vrumm_favicon.svg
