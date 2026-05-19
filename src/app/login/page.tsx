@@ -2,14 +2,36 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { saveLead } from "@/app/actions/leads";
+import { ArrowRight, Check } from "lucide-react";
 import { VrummLogo } from "@/components/layout/vrumm-logo";
 
+const SALES_WHATSAPP = "5521998258856";
+
+const BENEFITS = [
+  "Orçamentos profissionais em segundos",
+  "Kanban de ordens de serviço",
+  "Link público para o cliente aprovar",
+  "Histórico de veículos por cliente",
+];
+
 export default function LoginPage() {
+  const [mode, setMode] = useState<"lead" | "login">("lead");
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const supabase = createClient();
+
+  async function handleLeadSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    await saveLead(form);
+    const text = encodeURIComponent(
+      `Olá! Me chamo ${form.name} e tenho interesse no Vrumm. Meu e-mail é ${form.email}.`
+    );
+    window.open(`https://wa.me/${SALES_WHATSAPP}?text=${text}`, "_blank");
+    setLoading(false);
+  }
 
   async function handleGoogleLogin() {
     setLoading(true);
@@ -28,74 +50,164 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white race-stripe dot-pattern flex flex-col">
+    <main className="min-h-screen bg-zinc-950 text-white flex flex-col">
       {/* Ambient */}
       <div className="fixed inset-0 pointer-events-none" aria-hidden>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/[0.04] rounded-full blur-[130px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-amber-500/[0.04] rounded-full blur-[140px]" />
       </div>
 
       {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-8 py-7 max-w-7xl mx-auto w-full">
+      <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-6xl mx-auto w-full">
         <VrummLogo iconSize={28} textClass="text-xl text-white" />
-        <Link href="/" className="flex items-center gap-1.5 font-sans text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest">
-          <ArrowLeft className="w-3 h-3" /> Voltar
-        </Link>
+        {mode === "lead" ? (
+          <button
+            onClick={() => setMode("login")}
+            className="font-sans text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest"
+          >
+            Já sou cliente
+          </button>
+        ) : (
+          <button
+            onClick={() => setMode("lead")}
+            className="font-sans text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest"
+          >
+            ← Voltar
+          </button>
+        )}
       </nav>
 
-      {/* Form */}
+      {/* Conteúdo */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-[360px]">
+        {mode === "lead" ? (
+          /* ── Modo vendas ── */
+          <div className="w-full max-w-4xl grid md:grid-cols-2 gap-12 items-center">
 
-          {/* Heading */}
-          <div className="mb-10">
-            <h1
-              className="font-display font-black uppercase leading-none text-white mb-3"
-              style={{ fontSize: "clamp(52px, 10vw, 72px)" }}
-            >
-              BEM-VINDO
-              <br />
-              <span className="text-amber-400">DE VOLTA.</span>
-            </h1>
-            <p className="font-sans text-white/40 text-sm leading-relaxed">
-              Entre com sua conta Google para acessar sua estética.
-            </p>
-          </div>
-
-          {/* Card */}
-          <div className="border border-white/[0.07] bg-white/[0.02] p-6 backdrop-blur-sm">
-            <button
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 bg-white hover:bg-amber-50 active:bg-amber-100 text-[#080808] font-sans font-semibold py-3.5 px-4 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <GoogleIcon />
-              )}
-              {loading ? "Redirecionando..." : "Continuar com Google"}
-            </button>
-
-            <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px bg-white/[0.06]" />
-              <span className="font-sans text-white/20 text-[10px] uppercase tracking-widest">acesso seguro</span>
-              <div className="flex-1 h-px bg-white/[0.06]" />
+            {/* Left: pitch */}
+            <div>
+              <p className="font-sans text-amber-400 text-xs uppercase tracking-[0.2em] mb-4">
+                Gestão para estéticas automotivas
+              </p>
+              <h1
+                className="font-display font-black uppercase leading-none text-white mb-6"
+                style={{ fontSize: "clamp(40px, 7vw, 64px)" }}
+              >
+                PROFISSIONALIZE
+                <br />
+                <span className="text-amber-400">SUA ESTÉTICA.</span>
+              </h1>
+              <ul className="space-y-3 mb-8">
+                {BENEFITS.map((b) => (
+                  <li key={b} className="flex items-center gap-3 text-white/60 text-sm font-sans">
+                    <span className="w-5 h-5 rounded-full bg-amber-400/15 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-amber-400" />
+                    </span>
+                    {b}
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {loginError && (
-              <p className="text-red-400 text-xs text-center mt-1">{loginError}</p>
-            )}
+            {/* Right: form */}
+            <div className="border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm p-7">
+              <p className="font-display font-black text-xl uppercase tracking-tight mb-1">
+                Fale com um especialista
+              </p>
+              <p className="font-sans text-white/40 text-sm mb-6">
+                Deixe seu contato e entraremos em conversa pelo WhatsApp.
+              </p>
 
-            <p className="font-sans text-white/25 text-xs text-center leading-relaxed">
-              Primeiro acesso? Sua estética é criada
-              automaticamente — sem configuração.
-            </p>
+              <form onSubmit={handleLeadSubmit} className="space-y-3">
+                <input
+                  required
+                  type="text"
+                  placeholder="Seu nome"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/25 px-4 py-3 text-sm font-sans focus:outline-none focus:border-amber-400/50 transition-colors"
+                />
+                <input
+                  required
+                  type="email"
+                  placeholder="Seu e-mail"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/25 px-4 py-3 text-sm font-sans focus:outline-none focus:border-amber-400/50 transition-colors"
+                />
+                <input
+                  required
+                  type="tel"
+                  placeholder="WhatsApp (ex: 21 99999-9999)"
+                  value={form.whatsapp}
+                  onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/25 px-4 py-3 text-sm font-sans focus:outline-none focus:border-amber-400/50 transition-colors"
+                />
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-black font-sans font-bold py-3.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Aguarde..." : (
+                    <>
+                      Falar com especialista
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <p className="font-sans text-white/20 text-[11px] text-center mt-5">
+                Ao continuar, você aceita os termos de uso do Vrumm.
+              </p>
+            </div>
           </div>
+        ) : (
+          /* ── Modo login ── */
+          <div className="w-full max-w-[360px]">
+            <div className="mb-10">
+              <h1
+                className="font-display font-black uppercase leading-none text-white mb-3"
+                style={{ fontSize: "clamp(44px, 10vw, 64px)" }}
+              >
+                BEM-VINDO
+                <br />
+                <span className="text-amber-400">DE VOLTA.</span>
+              </h1>
+              <p className="font-sans text-white/40 text-sm leading-relaxed">
+                Entre com sua conta Google para acessar sua estética.
+              </p>
+            </div>
 
-          <p className="font-sans text-white/20 text-[11px] text-center mt-5">
-            Ao continuar, você aceita os termos de uso do Vrumm.
-          </p>
-        </div>
+            <div className="border border-white/[0.07] bg-white/[0.02] p-6 backdrop-blur-sm">
+              <button
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-3 bg-white hover:bg-amber-50 active:bg-amber-100 text-[#080808] font-sans font-semibold py-3.5 px-4 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <GoogleIcon />
+                )}
+                {loading ? "Redirecionando..." : "Continuar com Google"}
+              </button>
+
+              {loginError && (
+                <p className="text-red-400 text-xs text-center mt-4">{loginError}</p>
+              )}
+
+              <div className="flex items-center gap-3 my-5">
+                <div className="flex-1 h-px bg-white/[0.06]" />
+                <span className="font-sans text-white/20 text-[10px] uppercase tracking-widest">acesso seguro</span>
+                <div className="flex-1 h-px bg-white/[0.06]" />
+              </div>
+
+              <p className="font-sans text-white/25 text-xs text-center leading-relaxed">
+                Primeiro acesso? Sua estética é criada automaticamente.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
