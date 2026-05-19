@@ -22,12 +22,15 @@ export default function LoginPage() {
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const supabase = createClient();
 
-  async function handleLeadSubmit(e: React.FormEvent) {
+  function handleLeadSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    await saveLead(form);
+
+    // Salva em paralelo — não bloqueia o window.open (evita popup blocker)
+    saveLead(form).catch(() => {});
+
     const text = encodeURIComponent(
-      `Olá! Me chamo ${form.name} e tenho interesse no Vrumm. Meu e-mail é ${form.email}.`
+      `Olá, queria saber mais sobre a Vrumm. Me chamo ${form.name}.`
     );
     window.open(`https://wa.me/${SALES_WHATSAPP}?text=${text}`, "_blank");
     setLoading(false);
