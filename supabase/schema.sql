@@ -76,6 +76,15 @@ CREATE TABLE public.quotes (
   created_at     timestamptz   DEFAULT now()
 );
 
+-- Leads da página de vendas
+CREATE TABLE public.leads (
+  id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       text        NOT NULL,
+  email      text        NOT NULL,
+  whatsapp   text        NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+
 -- Itens do orçamento
 CREATE TABLE public.quote_items (
   id          uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
