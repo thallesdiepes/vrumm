@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { saveLead } from "@/app/actions/leads";
 import { ArrowRight, Check } from "lucide-react";
@@ -16,7 +17,17 @@ const BENEFITS = [
 ];
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<"lead" | "login">("lead");
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
+  const params = useSearchParams();
+  const initialMode = params.get("mode") === "login" ? "login" : "lead";
+  const [mode, setMode] = useState<"lead" | "login">(initialMode);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
@@ -65,9 +76,9 @@ export default function LoginPage() {
         {mode === "lead" ? (
           <button
             onClick={() => setMode("login")}
-            className="font-sans text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest"
+            className="font-sans text-xs font-semibold text-black bg-amber-400 hover:bg-amber-300 transition-colors px-4 py-2 uppercase tracking-widest"
           >
-            Já sou cliente
+            Já sou cliente →
           </button>
         ) : (
           <button

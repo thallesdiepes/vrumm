@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, Wrench, FileText, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { Users, Wrench, FileText, LayoutDashboard, LogOut, Settings, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -13,6 +13,7 @@ const navItems = [
   { href: "/dashboard/clientes",         label: "Clientes",      icon: Users },
   { href: "/dashboard/servicos",         label: "Serviços",      icon: Wrench },
   { href: "/dashboard/orcamentos",       label: "Orçamentos",    icon: FileText },
+  { href: "/dashboard/billing",          label: "Cobrança",      icon: CreditCard },
   { href: "/dashboard/configuracoes",    label: "Configurações", icon: Settings },
 ];
 
