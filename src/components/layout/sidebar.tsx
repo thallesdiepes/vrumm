@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, Wrench, FileText, LayoutDashboard, LogOut, Settings, CreditCard } from "lucide-react";
+import { Users, Wrench, FileText, LayoutDashboard, LogOut, Settings, CreditCard, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -17,12 +17,16 @@ const navItems = [
   { href: "/dashboard/configuracoes",    label: "Configurações", icon: Settings },
 ];
 
+const MASTER_EMAIL = "thallesmalinidiepes@gmail.com";
+
 interface SidebarProps {
   userName: string;
   tenantName: string;
+  userEmail?: string;
 }
 
-export function Sidebar({ userName, tenantName }: SidebarProps) {
+export function Sidebar({ userName, tenantName, userEmail }: SidebarProps) {
+  const isMaster = userEmail === MASTER_EMAIL;
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -67,6 +71,20 @@ export function Sidebar({ userName, tenantName }: SidebarProps) {
               </Link>
             );
           })}
+          {isMaster && (
+            <Link
+              href="/dashboard/master"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all mt-2 border-t border-gray-100 dark:border-zinc-800 pt-3",
+                pathname.startsWith("/dashboard/master")
+                  ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  : "text-gray-500 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800/50 hover:text-gray-900 dark:hover:text-zinc-100"
+              )}
+            >
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              Master
+            </Link>
+          )}
         </nav>
 
         {/* Footer */}

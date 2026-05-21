@@ -30,6 +30,7 @@ export default async function DashboardLayout({
       <Sidebar
         userName={profile?.full_name ?? user.email ?? ""}
         tenantName={tenantName}
+        userEmail={user.email ?? undefined}
       />
       <main className="md:ml-64 pb-20 md:pb-0 min-h-screen">
         {children}
