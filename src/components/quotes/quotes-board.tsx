@@ -3,7 +3,7 @@
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, ChevronRight, ChevronLeft, Trash2, ExternalLink, FileText, Pencil } from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Trash2, ExternalLink, FileText, Pencil, MessageCircle, X } from "lucide-react";
 import { updateQuoteStatus, deleteQuote } from "@/app/actions/quotes";
 import { QuoteDetailModal, type ModalQuote, type ModalTenant } from "@/components/quotes/quote-detail-modal";
 import { showToast } from "@/components/ui/toast";
@@ -260,17 +260,40 @@ export function QuotesBoard({
   const router = useRouter();
   const [activeQuote, setActiveQuote] = useState<Quote | null>(null);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [whatsAppQuote, setWhatsAppQuote] = useState<Quote | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
   );
 
+  function buildWhatsAppLink(quote: Quote) {
+    const quoteUrl = `${window.location.origin}/q/${quote.id}`;
+    const total = Number(quote.total_value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const msg = [
+      `Olá, ${quote.clients?.name ?? "cliente"}!`,
+      ``,
+      `Seu veículo está pronto para retirada na *${tenant.name}*.`,
+      ``,
+      `Confira o resumo do serviço: ${quoteUrl}`,
+      `Total: *${total}*`,
+      ``,
+      `Aguardamos você!`,
+    ].join("\n");
+    const rawPhone = quote.clients?.phone?.replace(/\D/g, "") ?? "";
+    const phone = rawPhone ? (rawPhone.startsWith("55") ? rawPhone : `55${rawPhone}`) : "";
+    return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  }
+
   function changeStatus(id: string, status: string) {
     startTransition(async () => {
       try {
         await updateQuoteStatus(id, status);
         router.refresh();
+        if (status === "Pronto") {
+          const quote = initialQuotes.find((q) => q.id === id);
+          if (quote) setWhatsAppQuote(quote);
+        }
       } catch {
         showToast("Não foi possível mover o orçamento. Tente novamente.");
       }
@@ -381,6 +404,48 @@ export function QuotesBoard({
           tenant={tenant}
           onClose={() => setSelectedQuote(null)}
         />
+      )}
+
+      {whatsAppQuote && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-500/10 flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <button
+                onClick={() => setWhatsAppQuote(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <h2 className="text-gray-900 dark:text-zinc-100 font-semibold text-base mb-1">
+              Serviço pronto!
+            </h2>
+            <p className="text-gray-500 dark:text-zinc-400 text-sm mb-5">
+              Deseja avisar <strong>{whatsAppQuote.clients?.name ?? "o cliente"}</strong> pelo WhatsApp que o veículo está pronto para retirada?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setWhatsAppQuote(null)}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Agora não
+              </button>
+              <a
+                href={buildWhatsAppLink(whatsAppQuote)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setWhatsAppQuote(null)}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-green-500 hover:bg-green-400 text-white text-sm font-semibold transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Enviar WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
