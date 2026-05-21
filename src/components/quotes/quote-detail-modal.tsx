@@ -67,12 +67,12 @@ export function QuoteDetailModal({
     const quoteUrl = `${window.location.origin}/q/${quote.id}`;
     const total = Number(quote.total_value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     const msg = [
-      `Olá, ${quote.clients?.name ?? "cliente"}! \u{1F44B}`,
+      `Olá, ${quote.clients?.name ?? "cliente"}!`,
       ``,
       `Seu orçamento da *${tenant.name}* está pronto.`,
       ``,
-      `\u{1F517} Acesse aqui: ${quoteUrl}`,
-      `\u{1F4B0} Total: *${total}*`,
+      `Acesse aqui: ${quoteUrl}`,
+      `Total: *${total}*`,
       ``,
       `Qualquer dúvida, estamos à disposição!`,
     ].join("\n");

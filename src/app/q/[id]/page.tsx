@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CheckCircle, Clock, Loader, Package, MapPin, Phone, Hash } from "lucide-react";
