@@ -15,7 +15,7 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = createAdminClient();
 
-  const { data: quote } = await supabase
+  const { data: quote, error } = await supabase
     .from("quotes")
     .select(`
       id, status, total_value, vehicle_notes, created_at,
@@ -27,6 +27,7 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ id
     .eq("id", id)
     .single();
 
+  if (error) console.error("[/q/[id]] supabase error:", error.message, error.code);
   if (!quote) notFound();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
