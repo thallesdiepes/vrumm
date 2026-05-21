@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { CheckCircle, Clock, Loader, Package, MapPin, Phone, Hash } from "lucide-react";
 import { PrintButton } from "@/components/quotes/print-button";
 import { VrummIconMark } from "@/components/layout/vrumm-logo";
@@ -15,7 +15,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string; Ico
 
 export default async function PublicQuotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = createAdminClient();
+  const supabase = await createClient();
 
   const { data: quote, error } = await supabase
     .from("quotes")
