@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Detail SaaS – Documento Final AP2</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 3cm 2cm 2cm 3cm;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      line-height: 1.5;
+      color: #000;
+      background: #b0b0b0;
+    }
+
+    .page {
+      background: white;
+      width: 21cm;
+      min-height: 29.7cm;
+      margin: 1cm auto;
+      padding: 3cm 2cm 2cm 3cm;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    @media print {
+      body { background: white; }
+      .page {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        min-height: auto;
+        box-shadow: none;
+        page-break-after: always;
+      }
+      .page:last-child { page-break-after: auto; }
+    }
+
+    /* ─── page number ─── */
+    .pn {
+      position: absolute;
+      top: 1cm;
+      right: 2cm;
+      font-size: 12pt;
+    }
+
+    /* ─── cover ─── */
+    .cover {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      height: 24.7cm;
+    }
+    .cover-inst { text-transform: uppercase; font-size: 12pt; line-height: 2; }
+    .cover-mid  { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .cover-title {
+      font-size: 12pt; font-weight: bold;
+      text-transform: uppercase; margin-bottom: 0.5cm;
+    }
+    .cover-sub  { font-size: 12pt; }
+    .cover-bot  { margin-top: auto; }
+
+    /* ─── headings ─── */
+    h1 {
+      font-size: 12pt; font-weight: bold;
+      text-transform: uppercase; text-align: center;
+      margin-bottom: 1cm;
+    }
+    h2 {
+      font-size: 12pt; font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 0.75cm; margin-bottom: 0.5cm;
+    }
+    h3 {
+      font-size: 12pt; font-weight: bold;
+      margin-top: 0.75cm; margin-bottom: 0.4cm;
+    }
+    h4 {
+      font-size: 12pt; font-weight: bold;
+      margin-top: 0.5cm; margin-bottom: 0.3cm;
+    }
+
+    /* ─── text ─── */
+    p {
+      text-align: justify;
+      text-indent: 1.25cm;
+      margin-bottom: 0;
+    }
+    p.ni { text-indent: 0; }
+    p + p { margin-top: 0; }
+
+    /* ─── lists ─── */
+    ul, ol { margin-left: 1.75cm; margin-bottom: 0.3cm; }
+    li { text-align: justify; margin-bottom: 0.1cm; }
+
+    /* ─── tables ─── */
+    table { width: 100%; border-collapse: collapse; margin: 0.4cm 0; }
+    th {
+      background: #222; color: #fff;
+      border: 1px solid #222;
+      padding: 5px 8px; text-align: left; font-size: 11pt;
+    }
+    td {
+      border: 1px solid #888;
+      padding: 5px 8px; vertical-align: top; font-size: 11pt;
+    }
+    .uc-td-label { font-weight: bold; background: #f5f5f5; width: 28%; }
+
+    /* ─── figures ─── */
+    figure { text-align: center; margin: 0.5cm 0; }
+    figcaption { font-size: 11pt; margin-top: 0.3cm; text-align: center; }
+    img { max-width: 13cm; height: auto; }
+
+    /* ─── toc ─── */
+    .toc-row {
+      display: flex; align-items: baseline;
+      margin-bottom: 0.15cm; font-size: 12pt;
+    }
+    .toc-num   { min-width: 1.5cm; }
+    .toc-lbl   { flex: 1; }
+    .toc-dots  { flex: 1; border-bottom: 1px dotted #000; margin: 0 0.3cm 3px 0.3cm; }
+    .toc-pg    { min-width: 0.6cm; text-align: right; }
+    .toc-sub   { margin-left: 1cm; }
+    .toc-ssub  { margin-left: 2cm; }
+    .toc-gap   { margin-top: 0.25cm; }
+
+    /* ─── screen mockups ─── */
+    .mockup {
+      border: 2px solid #444; margin: 0.4cm 0; font-size: 9pt;
+      font-family: Arial, sans-serif;
+    }
+    .mbar {
+      background: #1a1a2e; color: white;
+      padding: 4px 10px; font-size: 9pt; letter-spacing: 0.3px;
+    }
+    .mbody { padding: 0.4cm; background: #f4f4f4; }
+    .mrow  { display: flex; gap: 0.2cm; }
+    .mnav  {
+      width: 3.2cm; background: #1a1a2e; color: #ddd;
+      padding: 0.3cm 0.2cm; font-size: 8.5pt; min-height: 4.5cm;
+    }
+    .mnav-item { padding: 3px 6px; border-radius: 3px; margin-bottom: 2px; }
+    .mnav-item.act { background: rgba(255,255,255,0.15); color: #fff; }
+    .mcontent { flex: 1; padding: 0.3cm; background: #f4f4f4; }
+    .mcard {
+      background: white; border: 1px solid #ddd; border-radius: 4px;
+      padding: 0.2cm; margin-bottom: 0.15cm; font-size: 9pt;
+    }
+    .mkpi-row { display: flex; gap: 0.2cm; margin-bottom: 0.15cm; }
+    .mkpi {
+      flex: 1; background: white; border: 1px solid #ddd;
+      border-radius: 4px; padding: 0.2cm; text-align: center;
+    }
+    .mkpi-val { font-size: 15pt; font-weight: bold; color: #1a1a2e; }
+    .mkpi-lbl { font-size: 8pt; color: #666; }
+    .mkanban  { display: flex; gap: 0.15cm; }
+    .mkcol    {
+      flex: 1; background: #e2e8f0; border-radius: 4px;
+      padding: 0.15cm; min-height: 3cm;
+    }
+    .mkhead   {
+      font-weight: bold; font-size: 8pt; text-align: center;
+      padding: 2px; border-radius: 2px; margin-bottom: 0.15cm;
+    }
+    .mkcard   {
+      background: white; border: 1px solid #ccc; border-radius: 3px;
+      padding: 0.12cm; font-size: 8pt; margin-bottom: 0.08cm;
+    }
+    .badge {
+      display: inline-block; border-radius: 2px;
+      padding: 1px 4px; font-size: 7pt; font-weight: bold;
+    }
+    .b-y { background: #fef3c7; color: #92400e; }
+    .b-b { background: #dbeafe; color: #1e40af; }
+    .b-g { background: #d1fae5; color: #065f46; }
+    .b-gr{ background: #f3f4f6; color: #374151; }
+    .btn-m {
+      display: inline-block; background: #1a1a2e; color: white;
+      padding: 3px 10px; border-radius: 3px; font-size: 8.5pt; margin: 0.1cm 0;
+    }
+    .inp-m {
+      border: 1px solid #bbb; border-radius: 3px; padding: 2px 6px;
+      font-size: 8.5pt; width: 100%; display: block; margin: 2px 0; background: white;
+    }
+    .form-row { display: flex; gap: 0.2cm; margin-bottom: 0.1cm; }
+    .form-col { flex: 1; }
+    .form-label { font-size: 8pt; color: #444; margin-bottom: 1px; display: block; }
+    .pub-logo {
+      text-align: center; padding: 0.3cm; border-bottom: 1px solid #eee;
+      font-size: 13pt; font-weight: bold; letter-spacing: 2px;
+    }
+    .pub-total {
+      text-align: right; font-size: 13pt; font-weight: bold;
+      color: #065f46; margin-top: 0.2cm;
+    }
+    .pb { page-break-before: always; }
+    .sp { margin-top: 0.4cm; }
+
+    /* ─── risk colors ─── */
+    .r-hi  { color: #b91c1c; font-weight: bold; }
+    .r-md  { color: #d97706; font-weight: bold; }
+    .r-lo  { color: #166534; font-weight: bold; }
+
+    /* ─── references ─── */
+    .ref { text-indent: 0; margin-bottom: 0.5cm; text-align: justify; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ CAPA ══ -->
+<div class="page">
+  <div class="cover">
+    <div>
+      <p class="cover-inst ni" style="text-align:center;">
+        INSTITUIÇÃO DE ENSINO<br>
+        CURSO DE SISTEMAS DE INFORMAÇÃO
+      </p>
+    </div>
+    <div class="cover-mid">
+      <p class="cover-title">
+        AUTO DETAIL SAAS: SISTEMA DE GESTÃO PARA EMPRESAS<br>
+        DE ESTÉTICA AUTOMOTIVA
+      </p>
+      <p class="cover-sub ni" style="text-align:center;">Projeto de Sistema com Entregas por Aula – AP2</p>
+    </div>
+    <div class="cover-bot">
+      <p class="ni" style="text-align:center;">Thalles Malini Diepes</p>
+      <br>
+      <p class="ni" style="text-align:center;">2026</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ SUMÁRIO ══ -->
+<div class="page">
+  <div class="pn">2</div>
+  <h1>SUMÁRIO</h1>
+
+  <div class="toc-row"><span class="toc-num">1</span><span class="toc-lbl">INTRODUÇÃO</span><span class="toc-dots"></span><span class="toc-pg">3</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">1.1</span><span class="toc-lbl">Contextualização do sistema</span><span class="toc-dots"></span><span class="toc-pg">3</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">1.2</span><span class="toc-lbl">Descrição do sistema proposto</span><span class="toc-dots"></span><span class="toc-pg">3</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">1.3</span><span class="toc-lbl">Público-alvo</span><span class="toc-dots"></span><span class="toc-pg">3</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">1.4</span><span class="toc-lbl">Objetivo do sistema</span><span class="toc-dots"></span><span class="toc-pg">3</span></div>
+
+  <div class="toc-row toc-gap"><span class="toc-num">2</span><span class="toc-lbl">PROBLEMA E JUSTIFICATIVA</span><span class="toc-dots"></span><span class="toc-pg">4</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">2.1</span><span class="toc-lbl">Problema que será resolvido</span><span class="toc-dots"></span><span class="toc-pg">4</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">2.2</span><span class="toc-lbl">Justificativa da solução</span><span class="toc-dots"></span><span class="toc-pg">4</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">2.3</span><span class="toc-lbl">Importância do tema</span><span class="toc-dots"></span><span class="toc-pg">4</span></div>
+
+  <div class="toc-row toc-gap"><span class="toc-num">3</span><span class="toc-lbl">REQUISITOS DO SISTEMA</span><span class="toc-dots"></span><span class="toc-pg">5</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">3.1</span><span class="toc-lbl">Requisitos Funcionais</span><span class="toc-dots"></span><span class="toc-pg">5</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">3.2</span><span class="toc-lbl">Requisitos Não Funcionais</span><span class="toc-dots"></span><span class="toc-pg">5</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">3.3</span><span class="toc-lbl">Regras de Negócio</span><span class="toc-dots"></span><span class="toc-pg">6</span></div>
+
+  <div class="toc-row toc-gap"><span class="toc-num">4</span><span class="toc-lbl">MODELAGEM DO SISTEMA</span><span class="toc-dots"></span><span class="toc-pg">7</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">4.1</span><span class="toc-lbl">Identificação dos atores</span><span class="toc-dots"></span><span class="toc-pg">7</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">4.2</span><span class="toc-lbl">Diagrama de casos de uso</span><span class="toc-dots"></span><span class="toc-pg">7</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">4.3</span><span class="toc-lbl">Descrição das funcionalidades principais</span><span class="toc-dots"></span><span class="toc-pg">8</span></div>
+  <div class="toc-row toc-ssub"><span class="toc-num">4.3.1</span><span class="toc-lbl">UC01 – Realizar Agendamento</span><span class="toc-dots"></span><span class="toc-pg">8</span></div>
+  <div class="toc-row toc-ssub"><span class="toc-num">4.3.2</span><span class="toc-lbl">UC02 – Emitir Ordem de Serviço</span><span class="toc-dots"></span><span class="toc-pg">8</span></div>
+
+  <div class="toc-row toc-gap"><span class="toc-num">5</span><span class="toc-lbl">PROTÓTIPO E INTERFACE</span><span class="toc-dots"></span><span class="toc-pg">9</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">5.1</span><span class="toc-lbl">Telas do sistema</span><span class="toc-dots"></span><span class="toc-pg">9</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">5.2</span><span class="toc-lbl">Fluxo de uso do sistema</span><span class="toc-dots"></span><span class="toc-pg">11</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">5.3</span><span class="toc-lbl">Decisões de interface</span><span class="toc-dots"></span><span class="toc-pg">11</span></div>
+
+  <div class="toc-row toc-gap"><span class="toc-num">6</span><span class="toc-lbl">QUALIDADE, RISCOS E VIABILIDADE</span><span class="toc-dots"></span><span class="toc-pg">12</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">6.1</span><span class="toc-lbl">Análise de usabilidade</span><span class="toc-dots"></span><span class="toc-pg">12</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">6.2</span><span class="toc-lbl">Desempenho</span><span class="toc-dots"></span><span class="toc-pg">12</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">6.3</span><span class="toc-lbl">Segurança</span><span class="toc-dots"></span><span class="toc-pg">12</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">6.4</span><span class="toc-lbl">Riscos do projeto</span><span class="toc-dots"></span><span class="toc-pg">13</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">6.5</span><span class="toc-lbl">Limitações</span><span class="toc-dots"></span><span class="toc-pg">13</span></div>
+  <div class="toc-row toc-sub"><span class="toc-num">6.6</span><span class="toc-lbl">Melhorias futuras</span><span class="toc-dots"></span><span class="toc-pg">13</span></div>
+
+  <div class="toc-row toc-gap"><span class="toc-num">7</span><span class="toc-lbl">CONCLUSÃO</span><span class="toc-dots"></span><span class="toc-pg">14</span></div>
+
+  <div class="toc-row toc-gap"><span class="toc-num"></span><span class="toc-lbl">REFERÊNCIAS</span><span class="toc-dots"></span><span class="toc-pg">15</span></div>
+</div>
+
+<!-- ══════════════════════════════════ INTRODUÇÃO (p.3) ══ -->
+<div class="page">
+  <div class="pn">3</div>
+  <h1>1 INTRODUÇÃO</h1>
+
+  <h2>1.1 Contextualização do sistema</h2>
+  <p>O mercado de estética automotiva no Brasil tem apresentado crescimento consistente nos últimos anos, impulsionado pelo aumento da frota de veículos, pela valorização do bem por parte dos proprietários e pela ampliação da oferta de serviços especializados, como lavagem técnica, polimento, vitrificação, higienização interna e proteção de pintura. Apesar dessa expansão, grande parte dos estabelecimentos do setor ainda opera com controles manuais ou planilhas, o que dificulta o gerenciamento de agendamentos, o acompanhamento do histórico do cliente e a análise do desempenho financeiro. Nesse contexto, surge a necessidade de uma plataforma digital especializada, capaz de automatizar processos, organizar informações e oferecer uma experiência mais profissional tanto para o lojista quanto para o consumidor final.</p>
+
+  <h2>1.2 Descrição do sistema proposto</h2>
+  <p>O presente trabalho propõe o desenvolvimento do <strong>Auto Detail SaaS</strong>, uma plataforma web ofertada no modelo de Software as a Service, voltada à gestão integral de empresas de estética automotiva. O sistema contempla módulos de cadastro de clientes e veículos, catálogo de serviços, geração de orçamentos, controle de ordens de serviço, controle financeiro, envio automatizado de notificações ao cliente via WhatsApp e geração de indicadores gerenciais. A solução é acessível por meio de navegadores em computadores e dispositivos móveis, com interface responsiva e armazenamento em nuvem.</p>
+
+  <h2>1.3 Público-alvo</h2>
+  <p>O público-alvo do sistema compreende, principalmente, micro, pequenas e médias empresas do segmento de estética automotiva, incluindo lava rápidos, centros de detalhamento, oficinas especializadas em polimento e vitrificação, além de profissionais autônomos da área. De forma secundária, o sistema também beneficia os clientes finais desses estabelecimentos, que passam a contar com canais digitais para acompanhamento dos serviços contratados.</p>
+
+  <h2>1.4 Objetivo do sistema</h2>
+  <p>O objetivo geral do Auto Detail SaaS é centralizar e automatizar as principais rotinas operacionais e gerenciais de empresas de estética automotiva, oferecendo uma ferramenta única, segura e acessível, capaz de aumentar a produtividade, reduzir falhas operacionais e melhorar a experiência do cliente. Entre os objetivos específicos destacam-se: organizar a geração e o acompanhamento de orçamentos, manter o histórico completo de clientes e veículos, controlar receitas por período e fornecer indicadores para a tomada de decisão estratégica.</p>
+</div>
+
+<!-- ═══════════════════════ PROBLEMA E JUSTIFICATIVA (p.4) ══ -->
+<div class="page">
+  <div class="pn">4</div>
+  <h1>2 PROBLEMA E JUSTIFICATIVA</h1>
+
+  <h2>2.1 Problema que será resolvido</h2>
+  <p>Muitas empresas do ramo de estética automotiva ainda enfrentam dificuldades operacionais decorrentes da ausência de um sistema especializado. Os agendamentos costumam ser feitos por aplicativos de mensagens, sem padronização, gerando conflitos de horários, esquecimentos e retrabalho. O histórico de serviços prestados a cada veículo raramente é registrado de forma estruturada, o que prejudica ações de fidelização e a oferta de manutenções preventivas. O controle financeiro, por sua vez, é frequentemente realizado em cadernos ou planilhas isoladas, dificultando a análise de rentabilidade por serviço, por cliente ou por período. Tais limitações comprometem a competitividade, a profissionalização e o crescimento sustentável dessas empresas.</p>
+
+  <h2>2.2 Justificativa da solução</h2>
+  <p>A proposta do Auto Detail SaaS justifica-se pela demanda crescente por digitalização no setor de serviços automotivos, aliada à necessidade de soluções acessíveis e específicas para a realidade das empresas de estética automotiva. Ao adotar o modelo SaaS, o sistema elimina a necessidade de infraestrutura de servidores próprios, reduzindo o custo de adesão e permitindo atualizações contínuas. A plataforma também responde a tendências de mercado, como o atendimento omnichannel, a automação de notificações e a análise de dados para tomada de decisão, contribuindo para a profissionalização do segmento e para a melhoria da experiência do consumidor.</p>
+
+  <h2>2.3 Importância do tema</h2>
+  <p>A importância do tema reside no impacto direto que a transformação digital exerce sobre pequenos e médios negócios, especialmente em segmentos tradicionalmente analógicos como o de estética automotiva. Sistemas de gestão especializados aumentam a eficiência operacional, favorecem a sustentabilidade financeira, elevam o nível de serviço percebido pelo cliente e geram dados estratégicos para o planejamento. Do ponto de vista acadêmico, o desenvolvimento do Auto Detail SaaS permite a aplicação integrada de conhecimentos de Engenharia de Requisitos, Modelagem de Sistemas, Banco de Dados, Engenharia de Software e Experiência do Usuário, consolidando as competências esperadas em um profissional da área de Sistemas de Informação.</p>
+</div>
+
+<!-- ══════════════════════════════ REQUISITOS (p.5–6) ══ -->
+<div class="page">
+  <div class="pn">5</div>
+  <h1>3 REQUISITOS DO SISTEMA</h1>
+
+  <p>Este capítulo apresenta o levantamento de requisitos do Auto Detail SaaS, organizado em três categorias: requisitos funcionais (RF), que descrevem o que o sistema deve fazer; requisitos não funcionais (RNF), que estabelecem critérios de qualidade; e regras de negócio (RN), que definem restrições e políticas do domínio.</p>
+
+  <h2>3.1 Requisitos Funcionais</h2>
+
+  <p class="ni" style="margin-bottom:0.3cm;"></p>
+  <table>
+    <thead><tr><th style="width:12%">Código</th><th style="width:22%">Nome</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><strong>RF01</strong></td><td>Cadastro de clientes</td><td>O sistema deve permitir o cadastro, edição, consulta e inativação de clientes, contendo nome completo, CPF, telefone, e-mail e endereço.</td></tr>
+      <tr><td><strong>RF02</strong></td><td>Cadastro de veículos</td><td>O sistema deve permitir o cadastro de um ou mais veículos vinculados a cada cliente, registrando placa, marca, modelo, ano e cor, com busca automática na tabela FIPE.</td></tr>
+      <tr><td><strong>RF03</strong></td><td>Catálogo de serviços</td><td>O sistema deve permitir o cadastro do catálogo de serviços oferecidos (lavagem, polimento, vitrificação, higienização), com descrição, duração estimada e valor unitário.</td></tr>
+      <tr><td><strong>RF04</strong></td><td>Agendamento online</td><td>O sistema deve permitir o agendamento de serviços pelo cliente ou pelo atendente, considerando data, horário, profissional e disponibilidade do box de atendimento.</td></tr>
+      <tr><td><strong>RF05</strong></td><td>Ordem de serviço</td><td>O sistema deve permitir a emissão de ordens de serviço contendo cliente, veículo, serviços contratados, valores, profissional responsável e status (aberta, em execução, concluída, cancelada).</td></tr>
+      <tr><td><strong>RF06</strong></td><td>Controle financeiro</td><td>O sistema deve registrar pagamentos recebidos, formas de pagamento e gerar relatórios financeiros por período, cliente e tipo de serviço.</td></tr>
+      <tr><td><strong>RF07</strong></td><td>Notificações automáticas</td><td>O sistema deve enviar notificações automáticas, por e-mail e/ou WhatsApp, de confirmação de agendamento, lembrete e finalização do serviço.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3.2 Requisitos Não Funcionais</h2>
+
+  <table>
+    <thead><tr><th style="width:12%">Código</th><th style="width:22%">Categoria</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><strong>RNF01</strong></td><td>Desempenho</td><td>O sistema deve responder a 95% das requisições em tempo inferior a três segundos, sob carga normal de uso.</td></tr>
+      <tr><td><strong>RNF02</strong></td><td>Disponibilidade</td><td>Por se tratar de uma solução SaaS, o sistema deve manter disponibilidade mínima de 99,5% ao mês, com janelas de manutenção programadas em horários de baixo uso.</td></tr>
+      <tr><td><strong>RNF03</strong></td><td>Segurança</td><td>O sistema deve trafegar todas as informações sob protocolo HTTPS, armazenar senhas com hash criptográfico e oferecer autenticação via provedor de identidade confiável (Google OAuth).</td></tr>
+      <tr><td><strong>RNF04</strong></td><td>Usabilidade e responsividade</td><td>A interface deve ser responsiva, compatível com navegadores atualizados e adequada ao uso em dispositivos móveis, com suporte a tema escuro.</td></tr>
+      <tr><td><strong>RNF05</strong></td><td>Conformidade legal</td><td>O sistema deve estar em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), oferecendo controle de consentimento e exclusão de dados pessoais sob solicitação.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="page">
+  <div class="pn">6</div>
+  <h2>3.3 Regras de Negócio</h2>
+
+  <table>
+    <thead><tr><th style="width:12%">Código</th><th style="width:30%">Nome</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><strong>RN01</strong></td><td>Conflito de agendamento</td><td>Não é permitido alocar dois serviços no mesmo box de atendimento, para o mesmo profissional e no mesmo horário. O sistema deve bloquear automaticamente horários sobrepostos.</td></tr>
+      <tr><td><strong>RN02</strong></td><td>Bloqueio por inadimplência</td><td>Clientes com pagamentos em aberto há mais de 60 dias ficam automaticamente bloqueados para novos agendamentos, sendo liberados apenas após a quitação do débito.</td></tr>
+      <tr><td><strong>RN03</strong></td><td>Política de descontos progressivos</td><td>Clientes que contratarem mais de cinco serviços dentro do mesmo mês recebem desconto progressivo de 5% a 15% nos serviços subsequentes do período, conforme tabela definida pela administração.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════ MODELAGEM (p.7–8) ══ -->
+<div class="page">
+  <div class="pn">7</div>
+  <h1>4 MODELAGEM DO SISTEMA</h1>
+
+  <p>Este capítulo apresenta a modelagem do Auto Detail SaaS por meio da identificação dos atores envolvidos, do diagrama de casos de uso da Linguagem de Modelagem Unificada (UML) e da descrição detalhada de duas funcionalidades principais do sistema.</p>
+
+  <h2>4.1 Identificação dos Atores</h2>
+
+  <table>
+    <thead><tr><th style="width:22%">Ator</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Cliente</strong></td><td>Pessoa física proprietária do veículo, que utiliza o sistema para consultar serviços, realizar agendamentos, acompanhar o status do atendimento e receber notificações.</td></tr>
+      <tr><td><strong>Atendente</strong></td><td>Colaborador responsável pela recepção e pelo registro inicial das informações. Cadastra clientes e veículos, efetua agendamentos presenciais e por telefone, emite ordens de serviço e registra pagamentos.</td></tr>
+      <tr><td><strong>Técnico</strong></td><td>Profissional responsável pela execução dos serviços de estética automotiva. Consulta as ordens de serviço a ele atribuídas e atualiza o status de execução das atividades.</td></tr>
+      <tr><td><strong>Administrador</strong></td><td>Gestor do estabelecimento, com acesso amplo ao sistema. Define o catálogo de serviços, gerencia usuários, acompanha o financeiro e gera relatórios gerenciais e operacionais.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4.2 Diagrama de Casos de Uso</h2>
+
+  <p>A Figura 1 apresenta o diagrama de casos de uso do Auto Detail SaaS, evidenciando a interação dos atores identificados com as principais funcionalidades do sistema.</p>
+
+  <figure>
+    <img src="diagrama_casos_de_uso.png" alt="Diagrama de Casos de Uso do Auto Detail SaaS">
+    <figcaption>Figura 1 – Diagrama de Casos de Uso do Auto Detail SaaS. Fonte: elaborado pelo autor (2026).</figcaption>
+  </figure>
+</div>
+
+<div class="page">
+  <div class="pn">8</div>
+  <h2>4.3 Descrição das Funcionalidades Principais</h2>
+
+  <h3>4.3.1 UC01 – Realizar Agendamento</h3>
+  <table>
+    <tbody>
+      <tr><td class="uc-td-label">Identificador</td><td>UC01</td></tr>
+      <tr><td class="uc-td-label">Nome</td><td>Realizar Agendamento</td></tr>
+      <tr><td class="uc-td-label">Atores</td><td>Cliente, Atendente</td></tr>
+      <tr><td class="uc-td-label">Descrição</td><td>Permite o agendamento de um ou mais serviços de estética para um veículo, em data, horário e profissional específicos.</td></tr>
+      <tr><td class="uc-td-label">Pré-condições</td><td>O cliente deve estar cadastrado no sistema e possuir pelo menos um veículo vinculado. O ator deve estar autenticado.</td></tr>
+      <tr><td class="uc-td-label">Fluxo principal</td><td>1. O ator acessa o módulo de agendamento. 2. Seleciona o cliente e o veículo. 3. Seleciona um ou mais serviços do catálogo. 4. O sistema apresenta os horários disponíveis. 5. O ator escolhe data, horário e profissional. 6. O sistema valida a disponibilidade e a inexistência de conflitos (RN01). 7. O sistema confirma o agendamento e envia notificação ao cliente por e-mail e/ou WhatsApp.</td></tr>
+      <tr><td class="uc-td-label">Fluxo alternativo</td><td>4a. Caso não exista horário disponível, o sistema sugere a próxima data com disponibilidade. 6a. Caso o cliente esteja bloqueado por inadimplência (RN02), o sistema impede o agendamento e exibe mensagem informativa.</td></tr>
+      <tr><td class="uc-td-label">Pós-condições</td><td>Agendamento registrado no sistema com status "Agendado" e notificação enviada ao cliente.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.3.2 UC02 – Emitir Ordem de Serviço</h3>
+  <table>
+    <tbody>
+      <tr><td class="uc-td-label">Identificador</td><td>UC02</td></tr>
+      <tr><td class="uc-td-label">Nome</td><td>Emitir Ordem de Serviço</td></tr>
+      <tr><td class="uc-td-label">Atores</td><td>Atendente, Técnico</td></tr>
+      <tr><td class="uc-td-label">Descrição</td><td>Permite a criação da ordem de serviço (OS) a partir de um agendamento confirmado ou de um atendimento espontâneo, vinculando cliente, veículo, serviços, valores e profissional responsável.</td></tr>
+      <tr><td class="uc-td-label">Pré-condições</td><td>O cliente, o veículo e o catálogo de serviços devem estar previamente cadastrados. O ator deve estar autenticado.</td></tr>
+      <tr><td class="uc-td-label">Fluxo principal</td><td>1. O atendente acessa o agendamento confirmado ou inicia uma OS avulsa. 2. O sistema preenche automaticamente os dados do cliente e do veículo. 3. O atendente confere os serviços contratados e adiciona, se necessário, serviços extras. 4. O sistema calcula o valor total considerando descontos vigentes (RN03). 5. O atendente atribui o técnico responsável e confirma a abertura da OS. 6. O sistema gera o número da OS, define o status como "Em execução" e disponibiliza a OS ao técnico.</td></tr>
+      <tr><td class="uc-td-label">Fluxo alternativo</td><td>3a. Caso o serviço solicitado não exista no catálogo, o atendente deve solicitar ao administrador o cadastro do novo serviço antes de prosseguir.</td></tr>
+      <tr><td class="uc-td-label">Pós-condições</td><td>Ordem de serviço criada e vinculada ao agendamento (quando aplicável), pronta para ser executada e atualizada pelo técnico.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════ PROTÓTIPO E INTERFACE (p.9–11) ══ -->
+<div class="page">
+  <div class="pn">9</div>
+  <h1>5 PROTÓTIPO E INTERFACE</h1>
+
+  <p>Este capítulo apresenta o protótipo funcional do Auto Detail SaaS, composto pelas principais telas do sistema, o fluxo de uso e as decisões de design que orientaram a construção da interface.</p>
+
+  <h2>5.1 Telas do Sistema</h2>
+
+  <h3>5.1.1 Tela 1 – Autenticação e Captura de Lead</h3>
+  <p>A tela de acesso ao sistema oferece dois caminhos ao usuário: autenticação direta via conta Google, para empresas já contratantes, e um formulário de captura de lead (nome, e-mail e WhatsApp), para interessados ainda não cadastrados. Essa dualidade permite atender simultaneamente o cliente ativo e o prospecto. O layout é centralizado, minimalista e com branding da plataforma.</p>
+
+  <div class="mockup">
+    <div class="mbar">Auto Detail SaaS — Autenticação</div>
+    <div class="mbody" style="background:white; text-align:center; padding:0.6cm 1cm;">
+      <p class="ni" style="font-size:18pt; font-weight:bold; letter-spacing:3px; color:#1a1a2e; margin-bottom:0.3cm;">VRUMM</p>
+      <p class="ni" style="font-size:9pt; color:#666; margin-bottom:0.4cm;">Gestão profissional para estéticas automotivas</p>
+      <div style="border:1px solid #ddd; border-radius:4px; padding:0.4cm; max-width:7cm; margin:0 auto; text-align:left; font-size:9pt; font-family:Arial;">
+        <span class="form-label">Nome completo</span>
+        <span class="inp-m">João Silva</span>
+        <span class="form-label" style="margin-top:4px;">E-mail</span>
+        <span class="inp-m">joao@estetica.com</span>
+        <span class="form-label" style="margin-top:4px;">WhatsApp</span>
+        <span class="inp-m">(21) 99999-0000</span>
+        <div style="margin-top:0.3cm; text-align:center;">
+          <span class="btn-m" style="display:block; text-align:center; margin-bottom:0.15cm;">Falar com especialista →</span>
+          <span style="font-size:8pt; color:#888;">Ou</span>
+          <span class="btn-m" style="display:block; text-align:center; margin-top:0.15cm; background:#444;">G  Entrar com Google</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption style="font-size:11pt; text-align:center; margin-top:0.1cm;">Figura 2 – Tela de autenticação e captura de lead. Fonte: elaborado pelo autor (2026).</figcaption>
+
+  <h3 style="margin-top:0.5cm;">5.1.2 Tela 2 – Dashboard Principal</h3>
+  <p>O dashboard é a tela inicial após o login e oferece uma visão consolidada dos indicadores de desempenho do negócio. Quatro cartões de KPI exibem os totais de orçamentos, receita acumulada, serviços em execução e orçamentos entregues. A navegação lateral fixa orienta o usuário pelos módulos principais: Dashboard, Clientes, Serviços, Orçamentos e Configurações.</p>
+
+  <div class="mockup">
+    <div class="mbar">Auto Detail SaaS — Dashboard</div>
+    <div class="mrow" style="min-height:5cm;">
+      <div class="mnav">
+        <div style="font-weight:bold; font-size:10pt; margin-bottom:0.3cm; letter-spacing:1px;">VRUMM</div>
+        <div class="mnav-item act">Dashboard</div>
+        <div class="mnav-item">Clientes</div>
+        <div class="mnav-item">Serviços</div>
+        <div class="mnav-item">Orçamentos</div>
+        <div class="mnav-item">Configurações</div>
+      </div>
+      <div class="mcontent">
+        <p class="ni" style="font-size:9pt; font-weight:bold; margin-bottom:0.15cm; color:#1a1a2e;">Visão Geral</p>
+        <div class="mkpi-row">
+          <div class="mkpi"><div class="mkpi-val">47</div><div class="mkpi-lbl">Total Orçamentos</div></div>
+          <div class="mkpi"><div class="mkpi-val" style="color:#065f46;">R$&nbsp;12.840</div><div class="mkpi-lbl">Receita (mês)</div></div>
+          <div class="mkpi"><div class="mkpi-val" style="color:#1e40af;">8</div><div class="mkpi-lbl">Em Execução</div></div>
+          <div class="mkpi"><div class="mkpi-val" style="color:#374151;">23</div><div class="mkpi-lbl">Entregues</div></div>
+        </div>
+        <p class="ni" style="font-size:8.5pt; font-weight:bold; margin:0.2cm 0 0.1cm 0; color:#555;">Orçamentos Recentes</p>
+        <div class="mcard">Honda Civic – João S. &nbsp;<span class="badge b-b">Em Execução</span>&nbsp; R$ 380,00</div>
+        <div class="mcard">Toyota Corolla – Maria L. &nbsp;<span class="badge b-y">Aguardando</span>&nbsp; R$ 520,00</div>
+        <div class="mcard">VW Golf – Carlos M. &nbsp;<span class="badge b-g">Pronto</span>&nbsp; R$ 290,00</div>
+      </div>
+    </div>
+  </div>
+  <figcaption style="font-size:11pt; text-align:center; margin-top:0.1cm;">Figura 3 – Dashboard principal com KPIs e orçamentos recentes. Fonte: elaborado pelo autor (2026).</figcaption>
+</div>
+
+<div class="page">
+  <div class="pn">10</div>
+  <h3>5.1.3 Tela 3 – Quadro de Orçamentos (Kanban)</h3>
+  <p>O módulo de orçamentos é apresentado em formato de quadro Kanban com quatro colunas que representam os estágios do fluxo operacional: <em>Aguardando Aprovação</em>, <em>Em Execução</em>, <em>Pronto</em> e <em>Entregue</em>. O atendente pode arrastar cartões entre colunas para atualizar o status. Ao mover um orçamento para a coluna "Pronto", o sistema sugere o envio de notificação ao cliente via WhatsApp, incluindo o link público do orçamento.</p>
+
+  <div class="mockup">
+    <div class="mbar">Auto Detail SaaS — Orçamentos</div>
+    <div class="mrow" style="min-height:5.5cm;">
+      <div class="mnav">
+        <div style="font-weight:bold; font-size:10pt; margin-bottom:0.3cm; letter-spacing:1px;">VRUMM</div>
+        <div class="mnav-item">Dashboard</div>
+        <div class="mnav-item">Clientes</div>
+        <div class="mnav-item">Serviços</div>
+        <div class="mnav-item act">Orçamentos</div>
+        <div class="mnav-item">Configurações</div>
+      </div>
+      <div class="mcontent">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15cm;">
+          <span style="font-size:9pt; font-weight:bold; color:#1a1a2e;">Quadro de Orçamentos</span>
+          <span class="btn-m" style="font-size:8pt; padding:2px 8px;">+ Novo Orçamento</span>
+        </div>
+        <div class="mkanban">
+          <div class="mkcol">
+            <div class="mkhead b-y">Aguardando</div>
+            <div class="mkcard">Toyota Corolla<br>Maria L. · R$ 520,00</div>
+            <div class="mkcard">Ford Ka<br>Ana P. · R$ 180,00</div>
+          </div>
+          <div class="mkcol">
+            <div class="mkhead b-b">Em Execução</div>
+            <div class="mkcard">Honda Civic<br>João S. · R$ 380,00</div>
+            <div class="mkcard">Jeep Renegade<br>Pedro T. · R$ 690,00</div>
+          </div>
+          <div class="mkcol">
+            <div class="mkhead b-g" style="background:#d1fae5;">Pronto</div>
+            <div class="mkcard">VW Golf<br>Carlos M. · R$ 290,00</div>
+          </div>
+          <div class="mkcol">
+            <div class="mkhead b-gr">Entregue</div>
+            <div class="mkcard">Hyundai HB20<br>Lucas F. · R$ 150,00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption style="font-size:11pt; text-align:center; margin-top:0.1cm;">Figura 4 – Quadro Kanban de gestão de orçamentos. Fonte: elaborado pelo autor (2026).</figcaption>
+
+  <h3 style="margin-top:0.5cm;">5.1.4 Tela 4 – Criação de Novo Orçamento</h3>
+  <p>O formulário de criação de orçamento permite ao atendente selecionar ou cadastrar um cliente, vincular um veículo (com busca automática de marca, modelo e ano via API FIPE), selecionar serviços do catálogo, inserir observações técnicas e visualizar o valor total calculado automaticamente. O processo leva, em média, menos de 30 segundos.</p>
+
+  <div class="mockup">
+    <div class="mbar">Auto Detail SaaS — Novo Orçamento</div>
+    <div class="mbody" style="font-family:Arial; font-size:9pt; background:white; padding:0.3cm 0.5cm;">
+      <div class="form-row">
+        <div class="form-col">
+          <span class="form-label">Cliente</span>
+          <span class="inp-m">João Silva ▾</span>
+        </div>
+        <div class="form-col">
+          <span class="form-label">Veículo</span>
+          <span class="inp-m">Honda Civic 2023 ▾</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <span class="form-label">Marca (FIPE)</span>
+          <span class="inp-m">Honda ▾</span>
+        </div>
+        <div class="form-col">
+          <span class="form-label">Modelo (FIPE)</span>
+          <span class="inp-m">Civic ▾</span>
+        </div>
+        <div class="form-col">
+          <span class="form-label">Ano</span>
+          <span class="inp-m">2023 ▾</span>
+        </div>
+      </div>
+      <span class="form-label" style="margin-top:4px;">Serviços</span>
+      <div style="border:1px solid #ddd; border-radius:3px; padding:0.2cm; background:#f9f9f9; margin:2px 0 0.2cm 0;">
+        <div>☑ Polimento Técnico Completo ...................... R$ 280,00</div>
+        <div>☑ Higienização Interna ............................. R$ 100,00</div>
+        <div>☐ Vitrificação de Pintura ........................... R$ 450,00</div>
+      </div>
+      <div style="text-align:right; font-weight:bold; font-size:10pt; color:#065f46;">Total: R$ 380,00</div>
+      <div style="margin-top:0.2cm;"><span class="btn-m">Criar Orçamento</span></div>
+    </div>
+  </div>
+  <figcaption style="font-size:11pt; text-align:center; margin-top:0.1cm;">Figura 5 – Formulário de criação de novo orçamento. Fonte: elaborado pelo autor (2026).</figcaption>
+</div>
+
+<div class="page">
+  <div class="pn">11</div>
+  <h3>5.1.5 Tela 5 – Orçamento Público (visão do cliente)</h3>
+  <p>Ao final do processo, o sistema gera um link público e único para cada orçamento, acessível pelo cliente sem necessidade de login. A página exibe o logotipo da empresa, os dados do veículo, a lista de serviços contratados com valores individuais e o total. Ao final, um botão permite ao cliente confirmar o serviço diretamente via WhatsApp.</p>
+
+  <div class="mockup">
+    <div class="mbar">vrumm.com.br/q/abc123 — Orçamento Público</div>
+    <div class="mbody" style="font-family:Arial; background:white; font-size:9pt; padding:0.4cm 0.5cm;">
+      <div class="pub-logo">ESTÉTICA AUTOMOTIVA PRIME</div>
+      <p class="ni" style="margin-top:0.2cm; font-weight:bold; font-size:9.5pt;">Orçamento #0042</p>
+      <p class="ni" style="color:#555; font-size:8.5pt;">João Silva &nbsp;|&nbsp; Honda Civic 2023 &nbsp;|&nbsp; 15/06/2026</p>
+      <table style="margin-top:0.2cm; font-size:9pt;">
+        <thead><tr><th>Serviço</th><th style="width:25%; text-align:right;">Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Polimento Técnico Completo</td><td style="text-align:right;">R$ 280,00</td></tr>
+          <tr><td>Higienização Interna</td><td style="text-align:right;">R$ 100,00</td></tr>
+        </tbody>
+      </table>
+      <div class="pub-total">Total: R$ 380,00</div>
+      <div style="margin-top:0.3cm; text-align:center;">
+        <span class="btn-m" style="background:#075e54; padding:5px 14px;">Confirmar pelo WhatsApp</span>
+      </div>
+    </div>
+  </div>
+  <figcaption style="font-size:11pt; text-align:center; margin-top:0.1cm;">Figura 6 – Página pública de orçamento enviada ao cliente. Fonte: elaborado pelo autor (2026).</figcaption>
+
+  <h2 style="margin-top:0.6cm;">5.2 Fluxo de Uso do Sistema</h2>
+  <p>O fluxo principal de uso do sistema segue a sequência descrita abaixo, representando o ciclo completo de atendimento — do primeiro contato ao encerramento do serviço:</p>
+  <ol>
+    <li><strong>Acesso:</strong> o atendente acessa o sistema via navegador e realiza login com conta Google;</li>
+    <li><strong>Dashboard:</strong> visualiza os KPIs e os orçamentos recentes na tela inicial;</li>
+    <li><strong>Novo orçamento:</strong> clica em "Novo Orçamento", seleciona o cliente (ou cadastra um novo), associa o veículo consultando a tabela FIPE e seleciona os serviços desejados;</li>
+    <li><strong>Geração do orçamento:</strong> o sistema calcula o total e cria o orçamento com status "Aguardando Aprovação";</li>
+    <li><strong>Compartilhamento:</strong> o atendente copia o link público e envia ao cliente pelo WhatsApp;</li>
+    <li><strong>Aprovação:</strong> o cliente acessa o link, revisa os itens e confirma via WhatsApp;</li>
+    <li><strong>Execução:</strong> o atendente arrasta o cartão para "Em Execução" no Kanban;</li>
+    <li><strong>Conclusão:</strong> ao finalizar o serviço, o cartão é movido para "Pronto" e o sistema sugere notificação ao cliente;</li>
+    <li><strong>Entrega:</strong> após a retirada do veículo, o cartão é movido para "Entregue", encerrando o ciclo.</li>
+  </ol>
+
+  <h2>5.3 Decisões de Interface</h2>
+  <p>As decisões de interface foram orientadas por princípios de usabilidade voltados ao público-alvo — proprietários e atendentes de estéticas automotivas, com variados níveis de familiaridade digital:</p>
+  <ul>
+    <li><strong>Kanban como metáfora visual:</strong> o modelo de colunas é intuitivo e amplamente reconhecido, reduzindo a curva de aprendizado;</li>
+    <li><strong>Integração com a tabela FIPE:</strong> elimina erros de digitação e padroniza os dados dos veículos cadastrados;</li>
+    <li><strong>Link público em vez de PDF:</strong> dispensa anexos e instalação de apps pelo cliente; funciona em qualquer dispositivo com browser;</li>
+    <li><strong>WhatsApp como canal principal:</strong> canal preferencial de comunicação no Brasil (mais de 140 milhões de usuários), garantindo maior taxa de abertura;</li>
+    <li><strong>Suporte a modo escuro:</strong> reduz fadiga visual em ambientes de trabalho com baixa luminosidade, como garagens e boxes de atendimento;</li>
+    <li><strong>Design responsivo:</strong> permite uso em smartphones durante o atendimento, sem dependência de computador fixo.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════ QUALIDADE, RISCOS E VIAB. (p.12–13) ══ -->
+<div class="page">
+  <div class="pn">12</div>
+  <h1>6 QUALIDADE, RISCOS E VIABILIDADE</h1>
+
+  <p>Este capítulo apresenta a análise crítica do Auto Detail SaaS sob as perspectivas de usabilidade, desempenho e segurança, além do levantamento dos principais riscos, limitações e perspectivas de melhoria futura.</p>
+
+  <h2>6.1 Análise de Usabilidade</h2>
+  <p>O sistema foi projetado com base nos princípios de usabilidade de Nielsen (1994), buscando minimizar a carga cognitiva do usuário e maximizar a eficiência das tarefas mais frequentes. A interface adota hierarquia visual clara, navegação lateral persistente, feedback imediato em ações críticas (criação e atualização de orçamentos) e mensagens de confirmação antes de ações irreversíveis. O design responsivo garante experiência consistente em desktop e dispositivos móveis. Testes empíricos internos indicam que o fluxo completo de criação de orçamento — desde a seleção do cliente até a geração do link — pode ser concluído em menos de 30 segundos, atendendo ao objetivo de agilidade operacional.</p>
+
+  <h2>6.2 Desempenho</h2>
+  <p>O sistema é construído sobre Next.js 15, com renderização no servidor (Server-Side Rendering) e componentes React no servidor (React Server Components), o que reduz significativamente o volume de JavaScript transferido ao cliente e acelera o tempo de carregamento inicial das páginas. O banco de dados Supabase (PostgreSQL gerenciado) opera com infraestrutura distribuída globalmente, e as consultas mais frequentes contam com índices e funções RPC otimizadas. A configuração de cache em rotas do servidor minimiza o número de requisições ao banco em páginas de alta frequência de acesso. A meta estabelecida em RNF01 — 95% das requisições com tempo de resposta inferior a três segundos — é alcançável sob as condições de infraestrutura adotadas.</p>
+
+  <h2>6.3 Segurança</h2>
+  <p>A arquitetura de segurança do sistema é multicamada. Na camada de transporte, todas as comunicações são cifradas via HTTPS com certificado TLS. Na camada de autenticação, o sistema delega a gestão de identidade ao Google OAuth através do Supabase Auth, eliminando o armazenamento local de senhas e aproveitando os mecanismos de segurança do provedor de identidade. Na camada de dados, o banco de dados implementa Row-Level Security (RLS), política que impede que um tenant (empresa) acesse os dados de outro tenant, garantindo o isolamento entre clientes do SaaS. Variáveis sensíveis como a chave de serviço do Supabase e o segredo do webhook do Stripe são mantidas exclusivamente no ambiente de servidor, nunca expostas ao cliente. O sistema também adota conformidade com a LGPD (Lei nº 13.709/2018), permitindo a exclusão de dados pessoais mediante solicitação.</p>
+</div>
+
+<div class="page">
+  <div class="pn">13</div>
+  <h2>6.4 Riscos do Projeto</h2>
+
+  <table>
+    <thead><tr><th style="width:28%">Risco</th><th style="width:16%">Probabilidade</th><th style="width:14%">Impacto</th><th>Estratégia de Mitigação</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Indisponibilidade de serviços de terceiros (Supabase, Stripe)</td>
+        <td class="r-md">Média</td><td class="r-hi">Alto</td>
+        <td>Monitoramento proativo via alertas; SLAs contratados superiores a 99,9%; plano de contingência com comunicação ao cliente e janela de manutenção.</td>
+      </tr>
+      <tr>
+        <td>Concorrência de plataformas de gestão generalistas</td>
+        <td class="r-hi">Alta</td><td class="r-md">Médio</td>
+        <td>Foco em nicho vertical (estética automotiva), preço acessível (R$ 189/mês), integração nativa com WhatsApp e suporte humanizado diferenciado.</td>
+      </tr>
+      <tr>
+        <td>Resistência à adoção tecnológica pelo público-alvo</td>
+        <td class="r-md">Média</td><td class="r-hi">Alto</td>
+        <td>Onboarding 1:1 incluso no plano, interface simplificada com baixa curva de aprendizado e canal de suporte via WhatsApp.</td>
+      </tr>
+      <tr>
+        <td>Vazamento ou perda de dados de clientes</td>
+        <td class="r-lo">Baixa</td><td class="r-hi">Alto</td>
+        <td>RLS no banco de dados, backups automáticos do Supabase, autenticação via OAuth e comunicação cifrada por TLS.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>6.5 Limitações</h2>
+  <p>Na versão atual, o Auto Detail SaaS apresenta as seguintes limitações identificadas:</p>
+  <ul>
+    <li>Ausência de aplicativo móvel nativo; o acesso se dá exclusivamente via navegador (ainda que responsivo);</li>
+    <li>Integração com WhatsApp semi-automatizada: o sistema gera e sugere o texto da mensagem, mas o envio é feito manualmente pelo atendente;</li>
+    <li>Suporte limitado a uma única filial por conta no plano atual;</li>
+    <li>Ausência de testes automatizados (unitários e de integração), aumentando o risco de regressão em futuras atualizações;</li>
+    <li>O módulo de agendamento online pelo cliente final ainda não está disponível nesta versão.</li>
+  </ul>
+
+  <h2>6.6 Melhorias Futuras</h2>
+  <p>Com base nas limitações identificadas e no feedback esperado dos primeiros usuários, as seguintes melhorias estão previstas para versões futuras da plataforma:</p>
+  <ul>
+    <li>Integração com a API Oficial do WhatsApp Business para automação completa de notificações (confirmação de agendamento, lembrete e aviso de conclusão);</li>
+    <li>Módulo de agendamento online com calendário interativo acessível pelo cliente final;</li>
+    <li>Desenvolvimento de aplicativo móvel nativo para iOS e Android;</li>
+    <li>Relatórios avançados de rentabilidade por serviço, profissional e período, com exportação para Excel/PDF;</li>
+    <li>Módulo de controle de estoque de insumos (produtos de polimento, vitrificação etc.);</li>
+    <li>Suporte a múltiplas filiais por conta, com consolidação de indicadores;</li>
+    <li>Programa de fidelidade com pontuação e resgate de benefícios pelos clientes finais;</li>
+    <li>Suite de testes automatizados (unitários, de integração e end-to-end) para garantir a qualidade em ciclos de entrega contínua.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════ CONCLUSÃO (p.14) ══ -->
+<div class="page">
+  <div class="pn">14</div>
+  <h1>7 CONCLUSÃO</h1>
+
+  <p>O presente trabalho apresentou o desenvolvimento do Auto Detail SaaS, uma plataforma web no modelo Software as a Service voltada à digitalização e à gestão integral de empresas de estética automotiva. Ao longo das etapas do projeto, foram definidos a contextualização do problema, os objetivos do sistema, o levantamento de requisitos funcionais e não funcionais, a modelagem por meio de diagramas de casos de uso, a prototipação das telas principais e a análise crítica de qualidade, riscos e viabilidade.</p>
+
+  <p>O diagnóstico realizado evidenciou que grande parte dos estabelecimentos do segmento ainda opera de forma analógica, com controles manuais e comunicação desestruturada via aplicativos de mensagens. A solução proposta responde diretamente a essa lacuna, centralizando em uma única plataforma o cadastro de clientes e veículos, a geração de orçamentos profissionais, o acompanhamento do status dos serviços por meio de um quadro Kanban visual e a comunicação com o cliente via WhatsApp.</p>
+
+  <p>A escolha do modelo SaaS mostrou-se adequada ao perfil do público-alvo — micro e pequenas empresas com baixa capacidade de investimento em infraestrutura própria —, pois elimina a necessidade de servidores locais, permite atualizações contínuas e oferece previsibilidade de custo mensal acessível. A arquitetura técnica adotada, com Next.js 15, Supabase e Stripe, garante escalabilidade, segurança multicamada e conformidade com a LGPD.</p>
+
+  <p>As limitações identificadas — como a ausência de app nativo, a integração semi-automatizada com o WhatsApp e a falta de testes automatizados — representam oportunidades concretas de evolução do produto e estão mapeadas no roadmap de melhorias futuras. O projeto demonstrou, na prática, a aplicação integrada de conhecimentos de Engenharia de Requisitos, Modelagem de Sistemas, Banco de Dados, Segurança da Informação e Experiência do Usuário, consolidando as competências esperadas em um profissional de Sistemas de Informação.</p>
+
+  <p>Conclui-se que o Auto Detail SaaS configura uma solução tecnológica viável, relevante e com potencial de impacto real na profissionalização do setor de estética automotiva brasileiro, contribuindo para o aumento da produtividade dos estabelecimentos, a melhoria da experiência dos clientes finais e a geração de dados estratégicos para a tomada de decisão dos gestores.</p>
+</div>
+
+<!-- ══════════════════════════════════ REFERÊNCIAS (p.15) ══ -->
+<div class="page">
+  <div class="pn">15</div>
+  <h1>REFERÊNCIAS</h1>
+
+  <p class="ref">BRASIL. <strong>Lei nº 13.709, de 14 de agosto de 2018.</strong> Lei Geral de Proteção de Dados Pessoais (LGPD). Diário Oficial da União, Brasília, DF, 15 ago. 2018. Disponível em: http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709.htm. Acesso em: 15 jun. 2026.</p>
+
+  <p class="ref">NIELSEN, Jakob. <strong>Usability Engineering.</strong> San Francisco: Morgan Kaufmann, 1994.</p>
+
+  <p class="ref">OBJECT MANAGEMENT GROUP (OMG). <strong>Unified Modeling Language Specification.</strong> Version 2.5.1. Needham: OMG, 2017. Disponível em: https://www.omg.org/spec/UML/2.5.1. Acesso em: 15 jun. 2026.</p>
+
+  <p class="ref">PRESSMAN, Roger S.; MAXIM, Bruce R. <strong>Engenharia de Software:</strong> uma abordagem profissional. 8. ed. Porto Alegre: AMGH, 2016.</p>
+
+  <p class="ref">SOMMERVILLE, Ian. <strong>Engenharia de Software.</strong> 10. ed. São Paulo: Pearson Education do Brasil, 2018.</p>
+
+  <p class="ref">SUPABASE. <strong>Supabase Documentation.</strong> San Francisco: Supabase, 2024. Disponível em: https://supabase.com/docs. Acesso em: 15 jun. 2026.</p>
+
+  <p class="ref">STRIPE. <strong>Stripe Documentation.</strong> San Francisco: Stripe, 2024. Disponível em: https://stripe.com/docs. Acesso em: 15 jun. 2026.</p>
+
+  <p class="ref">VERCEL. <strong>Next.js Documentation.</strong> San Francisco: Vercel, 2024. Disponível em: https://nextjs.org/docs. Acesso em: 15 jun. 2026.</p>
+</div>
+
+</body>
+</html>
