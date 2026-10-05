@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { claimPendingSignup } from "@/lib/billing/claim-pending-signup";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -34,69 +34,38 @@ export async function GET(request: Request) {
 }
 
 /**
- * Garante que o usuário tenha um profile/tenant criados.
+ * Garante que o usuário tenha um profile/tenant e ativa se já pagou.
  *
- * Fluxo de pagamento (esperado):
- *  1. Cliente paga no Stripe → webhook grava pending_signups com status='paid'
- *  2. Cliente loga com Google → cai aqui
- *  3. Procuramos pending_signups pelo email
- *  4. Se encontrado e pago: criamos tenant com is_active=true + stripe_customer_id
- *  5. Marcamos pending_signups como 'consumed'
+ *  1. Primeiro login → RPC cria tenant + profile sempre INATIVOS
+ *  2. Todo login → se o profile está inativo, procura pagamento confirmado
+ *     (pending_signups pelo email) e ativa via service_role
  *
- * Fluxo sem pagamento (legado):
- *  Cria tenant com is_active=false → cai em /aguardando.
- *  Mantemos isso pra contas de teste/parceiros que você libera manualmente.
+ * O passo 2 roda também pra profiles já existentes: cobre quem logou
+ * antes de pagar (antes ficava preso em /aguardando pra sempre).
+ * Contas sem pagamento continuam em /aguardando pra liberação manual.
  */
 async function ensureProfileExists(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  // Profile já existe? Nada a fazer.
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id")
+    .select("is_active")
     .eq("id", user.id)
-    .single();
-  if (profile) return;
+    .maybeSingle();
 
-  const fullName = user.user_metadata?.full_name ?? user.email ?? "Usuário";
-  const email = (user.email ?? "").toLowerCase();
-
-  // Procuramos pagamento pendente pelo email (usa admin client pra bypassar RLS)
-  const admin = createAdminClient();
-  let paidStripeCustomerId: string | null = null;
-
-  if (email) {
-    const { data: pending } = await admin
-      .from("pending_signups")
-      .select("stripe_customer_id, status")
-      .eq("email", email)
-      .eq("status", "paid")
-      .maybeSingle();
-
-    if (pending) {
-      paidStripeCustomerId = pending.stripe_customer_id;
+  if (!profile) {
+    const fullName = user.user_metadata?.full_name ?? user.email ?? "Usuário";
+    const { error: rpcErr } = await supabase.rpc("create_tenant_and_profile", {
+      user_full_name: fullName,
+    });
+    if (rpcErr) {
+      console.error("[auth/callback] falha ao criar perfil:", rpcErr.message);
+      throw new Error("Falha ao criar perfil do usuário.");
     }
+  } else if (profile.is_active) {
+    return;
   }
 
-  // Cria tenant — se pagou, já ativo; senão, aguardando aprovação
-  const isPaid = paidStripeCustomerId !== null;
-  const { error: rpcErr } = await supabase.rpc("create_tenant_and_profile", {
-    user_full_name: fullName,
-    initial_is_active: isPaid,
-    initial_stripe_customer_id: paidStripeCustomerId,
-  });
-
-  if (rpcErr) {
-    console.error("[auth/callback] falha ao criar perfil:", rpcErr.message);
-    throw new Error("Falha ao criar perfil do usuário.");
-  }
-
-  // Consome o pending_signup pra não reutilizar (idempotência)
-  if (isPaid && email) {
-    await admin
-      .from("pending_signups")
-      .update({ status: "consumed", consumed_at: new Date().toISOString() })
-      .eq("email", email);
-  }
+  await claimPendingSignup(user.id, user.email);
 }

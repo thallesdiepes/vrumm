@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Clock, AlertTriangle, XCircle, CreditCard } from "lucide-react";
 import { VrummLogo } from "@/components/layout/vrumm-logo";
-import { createCustomerPortalSession } from "@/app/actions/stripe";
+import { createCheckoutSession, createCustomerPortalSession } from "@/app/actions/stripe";
+import { claimPendingSignup } from "@/lib/billing/claim-pending-signup";
 
 export default async function AguardandoPage() {
   const supabase = await createClient();
@@ -17,6 +18,10 @@ export default async function AguardandoPage() {
     .single();
 
   if (profile?.is_active) redirect("/dashboard");
+
+  // Pagamento confirmado enquanto o usuário já estava logado (ou logou antes
+  // de pagar): o webhook só grava pending_signups, a ativação acontece aqui.
+  if (profile && (await claimPendingSignup(user.id, user.email))) redirect("/dashboard");
 
   // Carrega status da assinatura pra decidir qual mensagem mostrar
   const { data: tenant } = await supabase
@@ -47,7 +52,7 @@ export default async function AguardandoPage() {
       iconColor: "text-amber-400",
       iconBg: "bg-amber-400/10 border-amber-400/20",
       title: <>Acesso <span className="text-amber-400">pendente</span></>,
-      desc: "Sua conta foi criada com sucesso. Assim que o acesso for liberado, você poderá entrar no painel normalmente.",
+      desc: "Sua conta foi criada. Finalize a assinatura para liberar o painel — se já pagou, recarregue esta página em alguns segundos.",
     },
     past_due: {
       icon: AlertTriangle,
@@ -90,7 +95,30 @@ export default async function AguardandoPage() {
           Logado como <span className="text-white/50">{user.email}</span>
         </p>
 
-        {/* CTA condicional: portal pra past_due, WhatsApp pra canceled, nada pra pending */}
+        {/* CTA condicional: checkout pra pending, portal pra past_due, WhatsApp pra canceled */}
+        {variant === "pending" && (
+          <form action={createCheckoutSession} className="mb-6">
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-white text-black font-display font-bold uppercase tracking-wider text-xs px-6 py-3 transition-colors"
+            >
+              <CreditCard className="w-4 h-4" />
+              Assinar agora
+            </button>
+            <p className="text-white/30 text-xs mt-3">
+              Já pagou com outro e-mail?{" "}
+              <a
+                href="https://wa.me/5521998258856?text=Paguei%20o%20VRUMM%20com%20outro%20e-mail"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-white/60"
+              >
+                Fale com a gente
+              </a>
+            </p>
+          </form>
+        )}
+
         {variant === "past_due" && hasStripeCustomer && (
           <form action={createCustomerPortalSession} className="mb-6">
             <button
