@@ -159,7 +159,9 @@ CREATE POLICY "tenants_select" ON public.tenants
 
 DROP POLICY IF EXISTS "tenants_update" ON public.tenants;
 CREATE POLICY "tenants_update" ON public.tenants
-  FOR UPDATE USING (id = public.get_my_tenant_id());
+  FOR UPDATE
+  USING (id = public.get_my_tenant_id())
+  WITH CHECK (id = public.get_my_tenant_id());
 
 -- Profiles: vê todos do tenant, edita só o próprio
 DROP POLICY IF EXISTS "profiles_select" ON public.profiles;
@@ -168,7 +170,16 @@ CREATE POLICY "profiles_select" ON public.profiles
 
 DROP POLICY IF EXISTS "profiles_update" ON public.profiles;
 CREATE POLICY "profiles_update" ON public.profiles
-  FOR UPDATE USING (id = auth.uid());
+  FOR UPDATE
+  USING (id = auth.uid())
+  WITH CHECK (id = auth.uid());
+
+-- Privilégios por coluna: usuário edita só dados cadastrais.
+-- is_active, tenant_id, subscription_*, stripe_customer_id → só service_role.
+REVOKE INSERT, UPDATE, DELETE ON public.profiles FROM anon, authenticated;
+GRANT UPDATE (full_name) ON public.profiles TO authenticated;
+REVOKE INSERT, UPDATE, DELETE ON public.tenants FROM anon, authenticated;
+GRANT UPDATE (name, cnpj, address, whatsapp_number, logo_url) ON public.tenants TO authenticated;
 
 -- Clients: acesso total dentro do tenant
 DROP POLICY IF EXISTS "clients_all" ON public.clients;
@@ -207,22 +218,13 @@ CREATE POLICY "quote_items_all" ON public.quote_items
 
 -- =============================================
 -- 5. FUNÇÃO RPC — Cria tenant + profile no primeiro login
--- Chamada pelo /auth/callback
---
--- Comportamento:
---  • initial_is_active = false (padrão)  → conta entra em "aguardando aprovação"
---    (usado pra fluxos que não passaram pelo Stripe)
---  • initial_is_active = true            → conta ativa imediatamente
---    (usado depois que pending_signups confirma pagamento via webhook)
---
+-- Chamada pelo /auth/callback. Sempre cria INATIVO — a ativação acontece
+-- só no servidor (service_role) via src/lib/billing/claim-pending-signup.ts,
+-- depois de confirmar o pagamento em pending_signups.
 -- Idempotente: se o profile já existe, retorna o tenant atual sem recriar.
 -- =============================================
 
-CREATE OR REPLACE FUNCTION public.create_tenant_and_profile(
-  user_full_name             text,
-  initial_is_active          boolean DEFAULT false,
-  initial_stripe_customer_id text    DEFAULT NULL
-)
+CREATE OR REPLACE FUNCTION public.create_tenant_and_profile(user_full_name text)
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -231,9 +233,11 @@ AS $$
 DECLARE
   new_tenant_id      uuid;
   existing_tenant_id uuid;
-  initial_sub_status text;
 BEGIN
-  -- Idempotente: se já existe profile, devolve o tenant atual
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Não autenticado';
+  END IF;
+
   SELECT tenant_id INTO existing_tenant_id
   FROM public.profiles
   WHERE id = auth.uid();
@@ -242,25 +246,19 @@ BEGIN
     RETURN existing_tenant_id;
   END IF;
 
-  -- Subscription começa 'active' se veio do Stripe, 'inactive' caso contrário
-  initial_sub_status := CASE WHEN initial_is_active THEN 'active' ELSE 'inactive' END;
-
-  INSERT INTO public.tenants (name, stripe_customer_id, subscription_status)
-  VALUES (
-    user_full_name || ' - Estética',
-    initial_stripe_customer_id,
-    initial_sub_status
-  )
+  INSERT INTO public.tenants (name)
+  VALUES (user_full_name || ' - Estética')
   RETURNING id INTO new_tenant_id;
 
   INSERT INTO public.profiles (id, tenant_id, full_name, role, is_active)
-  VALUES (auth.uid(), new_tenant_id, user_full_name, 'admin', initial_is_active);
+  VALUES (auth.uid(), new_tenant_id, user_full_name, 'admin', false);
 
   RETURN new_tenant_id;
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.create_tenant_and_profile(text, boolean, text) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.create_tenant_and_profile(text) FROM public, anon;
+GRANT EXECUTE ON FUNCTION public.create_tenant_and_profile(text) TO authenticated;
 
 
 -- =============================================

@@ -32,6 +32,11 @@ export async function createCheckoutSession() {
 
   const origin = getPublicOrigin(await headers());
 
+  // Se já está logado (vindo de /aguardando), trava o e-mail do checkout no
+  // e-mail do login — é por ele que claimPendingSignup acha o pagamento.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     line_items: [
@@ -42,7 +47,8 @@ export async function createCheckoutSession() {
     billing_address_collection: "required",
     allow_promotion_codes: true,
     success_url: `${origin}/checkout/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/?canceled=1`,
+    cancel_url: user ? `${origin}/aguardando` : `${origin}/?canceled=1`,
+    ...(user?.email ? { customer_email: user.email } : {}),
     subscription_data: {
       // Metadata persiste no objeto Subscription — útil pro webhook
       metadata: { source: "landing" },
