@@ -42,7 +42,10 @@ export function ClientsSection({ initialClients }: { initialClients: Client[] })
   const [showNewClientVehicleForm, setShowNewClientVehicleForm] = useState(false);
 
   // Vehicles modal
-  const [vehiclesClient, setVehiclesClient] = useState<Client | null>(null);
+  // Guarda só o id: os dados vêm sempre de initialClients, que é atualizado
+  // pelo revalidatePath das actions — assim o modal reflete o que foi salvo.
+  const [vehiclesClientId, setVehiclesClientId] = useState<string | null>(null);
+  const vehiclesClient = initialClients.find((c) => c.id === vehiclesClientId) ?? null;
   const [vehicleFormMode, setVehicleFormMode] = useState<{ mode: "create" | "edit"; vehicle?: Vehicle } | null>(null);
   const [vehicleError, setVehicleError] = useState("");
 
@@ -97,7 +100,7 @@ export function ClientsSection({ initialClients }: { initialClients: Client[] })
 
   // ── Vehicles modal handlers ──
   function openVehicles(c: Client) {
-    setVehiclesClient(c);
+    setVehiclesClientId(c.id);
     setVehicleFormMode(null);
     setVehicleError("");
   }
@@ -324,7 +327,7 @@ export function ClientsSection({ initialClients }: { initialClients: Client[] })
                 <h2 className="font-semibold text-gray-900 dark:text-zinc-100">Veículos</h2>
                 <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">{vehiclesClient.name}</p>
               </div>
-              <button onClick={() => setVehiclesClient(null)} className="text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-200 transition-colors">
+              <button onClick={() => setVehiclesClientId(null)} className="text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-200 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
