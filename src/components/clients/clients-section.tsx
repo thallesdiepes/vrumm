@@ -38,6 +38,8 @@ export function ClientsSection({ initialClients }: { initialClients: Client[] })
   const [clientModal, setClientModal] = useState<{ mode: "create" | "edit"; client?: Client } | null>(null);
   const [clientForm, setClientForm] = useState({ name: "", phone: "" });
   const [clientError, setClientError] = useState("");
+  const [newClientVehicle, setNewClientVehicle] = useState<VehicleData | null>(null);
+  const [showNewClientVehicleForm, setShowNewClientVehicleForm] = useState(false);
 
   // Vehicles modal
   const [vehiclesClient, setVehiclesClient] = useState<Client | null>(null);
@@ -54,6 +56,8 @@ export function ClientsSection({ initialClients }: { initialClients: Client[] })
   function openCreateClient() {
     setClientForm({ name: "", phone: "" });
     setClientError("");
+    setNewClientVehicle(null);
+    setShowNewClientVehicleForm(false);
     setClientModal({ mode: "create" });
   }
 
@@ -66,10 +70,16 @@ export function ClientsSection({ initialClients }: { initialClients: Client[] })
   function handleClientSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!clientForm.name.trim()) { setClientError("Nome é obrigatório."); return; }
+    if (showNewClientVehicleForm) { setClientError("Salve ou cancele o veículo antes de continuar."); return; }
     setClientError("");
     startTransition(async () => {
       try {
-        await upsertClient({ id: clientModal?.client?.id, name: clientForm.name, phone: clientForm.phone });
+        await upsertClient({
+          id: clientModal?.client?.id,
+          name: clientForm.name,
+          phone: clientForm.phone,
+          vehicle: clientModal?.mode === "create" && newClientVehicle ? newClientVehicle : undefined,
+        });
         setClientModal(null);
       } catch (err: unknown) {
         setClientError(err instanceof Error ? err.message : "Erro ao salvar.");
@@ -207,11 +217,11 @@ export function ClientsSection({ initialClients }: { initialClients: Client[] })
       {/* ── Client Modal ── */}
       {clientModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="w-full sm:max-w-sm bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-2xl">
-            <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-full sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-2xl max-h-[92vh] flex flex-col">
+            <div className="flex justify-center pt-3 pb-1 sm:hidden shrink-0">
               <div className="w-10 h-1 bg-gray-300 dark:bg-zinc-600 rounded-full" />
             </div>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-800 shrink-0">
               <h2 className="font-semibold text-gray-900 dark:text-zinc-100">
                 {clientModal.mode === "create" ? "Novo Cliente" : "Editar Cliente"}
               </h2>
@@ -219,32 +229,85 @@ export function ClientsSection({ initialClients }: { initialClients: Client[] })
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleClientSubmit} className="p-6 pb-8 sm:pb-6 space-y-4">
-              {([
-                ["name", "Nome *", "João Silva", "text"],
-                ["phone", "Telefone / WhatsApp", "11999999999", "tel"],
-              ] as [keyof typeof clientForm, string, string, string][]).map(([field, label, ph, type]) => (
-                <div key={field}>
-                  <label className="text-xs font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">{label}</label>
-                  <input
-                    type={type}
-                    placeholder={ph}
-                    value={clientForm[field]}
-                    onChange={(e) => setClientForm({ ...clientForm, [field]: e.target.value })}
-                    className={inputCls}
-                  />
+            <div className="flex-1 overflow-y-auto p-6 pb-8 sm:pb-6 space-y-4">
+              <form id="client-form" onSubmit={handleClientSubmit} className="space-y-4">
+                {([
+                  ["name", "Nome *", "João Silva", "text"],
+                  ["phone", "Telefone / WhatsApp", "11999999999", "tel"],
+                ] as [keyof typeof clientForm, string, string, string][]).map(([field, label, ph, type]) => (
+                  <div key={field}>
+                    <label className="text-xs font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">{label}</label>
+                    <input
+                      type={type}
+                      placeholder={ph}
+                      value={clientForm[field]}
+                      onChange={(e) => setClientForm({ ...clientForm, [field]: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                ))}
+              </form>
+
+              {/* Veículo opcional — só na criação (na edição usa o modal de veículos) */}
+              {clientModal.mode === "create" && (
+                <div className="border-t border-gray-200 dark:border-zinc-700 pt-4">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
+                    Veículo <span className="normal-case font-normal tracking-normal">(opcional)</span>
+                  </p>
+                  {newClientVehicle ? (
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-500 bg-amber-50 dark:bg-amber-500/10">
+                      <Car className="w-4 h-4 text-amber-500 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-mono text-xs px-2 py-0.5 rounded">
+                          {newClientVehicle.plate}
+                        </span>
+                        {vehicleDesc(newClientVehicle) && (
+                          <p className="text-amber-600 dark:text-amber-400 text-xs mt-0.5 truncate">{vehicleDesc(newClientVehicle)}</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setNewClientVehicle(null); setShowNewClientVehicleForm(true); }}
+                        className="text-gray-400 hover:text-amber-500 text-xs transition-colors"
+                      >
+                        Alterar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewClientVehicle(null)}
+                        className="text-gray-400 hover:text-red-500 text-xs transition-colors"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  ) : showNewClientVehicleForm ? (
+                    <VehicleForm
+                      onSave={(data) => { setNewClientVehicle(data); setShowNewClientVehicleForm(false); setClientError(""); }}
+                      onCancel={() => setShowNewClientVehicleForm(false)}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewClientVehicleForm(true)}
+                      className="flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Vincular veículo
+                    </button>
+                  )}
                 </div>
-              ))}
+              )}
+
               {clientError && <p className="text-red-500 text-sm">{clientError}</p>}
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setClientModal(null)} className="flex-1 py-2.5 text-sm font-medium bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded-lg transition-colors">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="flex-1 bg-amber-500 hover:bg-amber-400 text-black py-2.5 text-sm font-semibold rounded-lg transition-colors disabled:opacity-60">
+                <button type="submit" form="client-form" disabled={isPending} className="flex-1 bg-amber-500 hover:bg-amber-400 text-black py-2.5 text-sm font-semibold rounded-lg transition-colors disabled:opacity-60">
                   {isPending ? "Salvando..." : "Salvar"}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

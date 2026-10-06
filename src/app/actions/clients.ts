@@ -16,10 +16,33 @@ async function getTenantId() {
   return { supabase, tenantId: profile.tenant_id };
 }
 
+type VehicleInput = {
+  plate: string;
+  brand?: string;
+  brandCode?: string;
+  model?: string;
+  modelCode?: string;
+  year?: string;
+};
+
+function vehiclePayload(v: VehicleInput, clientId: string, tenantId: string) {
+  return {
+    client_id: clientId,
+    tenant_id: tenantId,
+    plate: v.plate.trim().toUpperCase(),
+    brand: v.brand?.trim() || null,
+    brand_code: v.brandCode?.trim() || null,
+    model: v.model?.trim() || null,
+    model_code: v.modelCode?.trim() || null,
+    year: v.year?.trim() || null,
+  };
+}
+
 export async function upsertClient(data: {
   id?: string;
   name: string;
   phone: string;
+  vehicle?: VehicleInput; // só na criação — vincula o primeiro veículo junto
 }) {
   const { supabase, tenantId } = await getTenantId();
 
@@ -33,8 +56,23 @@ export async function upsertClient(data: {
     const { error } = await supabase.from("clients").update(payload).eq("id", data.id);
     if (error) throw new Error(error.message);
   } else {
-    const { error } = await supabase.from("clients").insert(payload);
+    const { data: created, error } = await supabase
+      .from("clients")
+      .insert(payload)
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
+
+    if (data.vehicle?.plate.trim()) {
+      const { error: vErr } = await supabase
+        .from("vehicles")
+        .insert(vehiclePayload(data.vehicle, created.id, tenantId));
+      if (vErr) {
+        // Desfaz o cliente pra não ficar cadastro pela metade
+        await supabase.from("clients").delete().eq("id", created.id);
+        throw new Error(vErr.message);
+      }
+    }
   }
 
   revalidatePath("/dashboard/clientes");
@@ -59,16 +97,7 @@ export async function upsertVehicle(data: {
 }) {
   const { supabase, tenantId } = await getTenantId();
 
-  const payload = {
-    client_id: data.clientId,
-    tenant_id: tenantId,
-    plate: data.plate.trim().toUpperCase(),
-    brand: data.brand?.trim() || null,
-    brand_code: data.brandCode?.trim() || null,
-    model: data.model?.trim() || null,
-    model_code: data.modelCode?.trim() || null,
-    year: data.year?.trim() || null,
-  };
+  const payload = vehiclePayload(data, data.clientId, tenantId);
 
   if (data.id) {
     const { error } = await supabase.from("vehicles").update(payload).eq("id", data.id);
