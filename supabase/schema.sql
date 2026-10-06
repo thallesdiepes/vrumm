@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS public.quotes (
   status         text          NOT NULL DEFAULT 'Aguardando Aprovacao',
   total_value    decimal(10,2) NOT NULL DEFAULT 0,
   vehicle_notes  text,
+  delivered_at   timestamptz,  -- preenchido pelo trigger quotes_set_delivered_at
   created_at     timestamptz   DEFAULT now()
 );
 
@@ -447,3 +448,37 @@ REVOKE EXECUTE ON FUNCTION public.update_quote(uuid, jsonb, numeric, text) FROM 
 GRANT EXECUTE ON FUNCTION public.validate_quote_items(jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.create_quote(uuid, uuid, jsonb, jsonb, jsonb, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.update_quote(uuid, jsonb, numeric, text) TO authenticated;
+
+
+-- =============================================
+-- 8. DATA DE ENTREGA + ÍNDICES DO DASHBOARD MENSAL
+-- =============================================
+
+-- Preenche delivered_at quando o status vira 'Entregue' e limpa quando sai.
+-- Trigger no banco: vale para Kanban, edição ou qualquer outro caminho.
+CREATE OR REPLACE FUNCTION public.set_quote_delivered_at()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.status = 'Entregue' THEN
+    IF TG_OP = 'INSERT' OR OLD.status IS DISTINCT FROM 'Entregue' OR NEW.delivered_at IS NULL THEN
+      NEW.delivered_at := now();
+    END IF;
+  ELSE
+    NEW.delivered_at := NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS quotes_set_delivered_at ON public.quotes;
+CREATE TRIGGER quotes_set_delivered_at
+  BEFORE INSERT OR UPDATE OF status ON public.quotes
+  FOR EACH ROW EXECUTE FUNCTION public.set_quote_delivered_at();
+
+CREATE INDEX IF NOT EXISTS quotes_tenant_delivered_at_idx
+  ON public.quotes (tenant_id, delivered_at);
+CREATE INDEX IF NOT EXISTS quotes_tenant_created_at_idx
+  ON public.quotes (tenant_id, created_at);
