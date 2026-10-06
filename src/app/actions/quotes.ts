@@ -23,6 +23,16 @@ type QuoteItemData = {
   unitPrice: number;
 };
 
+function itemsPayload(items: QuoteItemData[]) {
+  return items.map((i) => ({
+    service_id: i.serviceId,
+    quantity: i.quantity,
+    unit_price: i.unitPrice,
+  }));
+}
+
+// Cliente/veículo novos + orçamento + itens numa única transação
+// (função create_quote — supabase/migration_quote_rpcs.sql)
 export async function createQuote(data: {
   clientId?: string;
   vehicleId?: string;
@@ -35,77 +45,28 @@ export async function createQuote(data: {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autenticado");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("tenant_id")
-    .eq("id", user.id)
-    .single();
-  if (!profile) throw new Error("Perfil não encontrado");
-
-  const tenantId = profile.tenant_id;
-  let clientId = data.clientId;
-  let vehicleId = data.vehicleId;
-
-  if (!clientId && data.newClient) {
-    const { data: created, error } = await supabase
-      .from("clients")
-      .insert({ name: data.newClient.name.trim(), phone: data.newClient.phone.trim(), tenant_id: tenantId })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    clientId = created.id;
-  }
-
-  if (!clientId) throw new Error("Cliente obrigatório");
-
-  if (!vehicleId && data.newVehicle) {
-    const v = data.newVehicle;
-    const { data: created, error } = await supabase
-      .from("vehicles")
-      .insert({
-        client_id: clientId,
-        tenant_id: tenantId,
-        plate: v.plate.trim().toUpperCase(),
-        brand: v.brand?.trim() || null,
-        brand_code: v.brandCode?.trim() || null,
-        model: v.model?.trim() || null,
-        model_code: v.modelCode?.trim() || null,
-        year: v.year?.trim() || null,
-      })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    vehicleId = created.id;
-  }
-
-  const totalValue = data.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
-
-  const { data: quote, error: qErr } = await supabase
-    .from("quotes")
-    .insert({
-      tenant_id: tenantId,
-      client_id: clientId,
-      vehicle_id: vehicleId ?? null,
-      status: "Aguardando Aprovacao",
-      total_value: totalValue,
-      vehicle_notes: data.vehicleNotes || null,
-    })
-    .select("id")
-    .single();
-  if (qErr) throw new Error(qErr.message);
-
-  const { error: iErr } = await supabase.from("quote_items").insert(
-    data.items.map((i) => ({
-      quote_id: quote.id,
-      service_id: i.serviceId,
-      quantity: i.quantity,
-      unit_price: i.unitPrice,
-    }))
-  );
-  if (iErr) throw new Error(iErr.message);
+  const v = data.newVehicle;
+  const { data: quoteId, error } = await supabase.rpc("create_quote", {
+    p_client_id: data.clientId ?? null,
+    p_vehicle_id: data.vehicleId ?? null,
+    p_new_client: data.clientId ? null : data.newClient ?? null,
+    p_new_vehicle: data.vehicleId || !v
+      ? null
+      : {
+          plate: v.plate,
+          brand: v.brand ?? null,
+          brand_code: v.brandCode ?? null,
+          model: v.model ?? null,
+          model_code: v.modelCode ?? null,
+          year: v.year ?? null,
+        },
+    p_items: itemsPayload(data.items),
+    p_vehicle_notes: data.vehicleNotes,
+  });
+  if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/orcamentos");
-  return { id: quote.id };
+  return { id: quoteId as string };
 }
 
 export async function updateQuoteStatus(id: string, status: string) {
@@ -115,6 +76,8 @@ export async function updateQuoteStatus(id: string, status: string) {
   revalidatePath("/dashboard/orcamentos");
 }
 
+// Substitui itens + total + observações numa única transação
+// (função update_quote — supabase/migration_quote_rpcs.sql)
 export async function updateQuote(data: {
   id: string;
   items: QuoteItemData[];
@@ -127,27 +90,13 @@ export async function updateQuote(data: {
 
   if (data.items.length === 0) throw new Error("Adicione pelo menos um serviço.");
 
-  const { error: delErr } = await supabase
-    .from("quote_items")
-    .delete()
-    .eq("quote_id", data.id);
-  if (delErr) throw new Error(delErr.message);
-
-  const { error: insErr } = await supabase.from("quote_items").insert(
-    data.items.map((i) => ({
-      quote_id: data.id,
-      service_id: i.serviceId,
-      quantity: i.quantity,
-      unit_price: i.unitPrice,
-    }))
-  );
-  if (insErr) throw new Error(insErr.message);
-
-  const { error: updErr } = await supabase
-    .from("quotes")
-    .update({ total_value: data.totalValue, vehicle_notes: data.vehicleNotes || null })
-    .eq("id", data.id);
-  if (updErr) throw new Error(updErr.message);
+  const { error } = await supabase.rpc("update_quote", {
+    p_quote_id: data.id,
+    p_items: itemsPayload(data.items),
+    p_total: data.totalValue,
+    p_vehicle_notes: data.vehicleNotes,
+  });
+  if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/orcamentos");
 }
