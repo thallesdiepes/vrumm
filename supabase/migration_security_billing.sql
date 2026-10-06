@@ -3,6 +3,8 @@
 -- (o código novo chama create_tenant_and_profile só com user_full_name,
 -- que também funciona com a função antiga — então código primeiro, SQL depois).
 
+BEGIN;
+
 -- =============================================
 -- 1. profiles: usuário só pode editar o próprio full_name
 --    Antes: UPDATE liberado em todas as colunas → dava pra setar
@@ -42,7 +44,10 @@ CREATE POLICY "tenants_update" ON public.tenants
 --    no servidor (service_role) após confirmar pending_signups.
 -- =============================================
 
+-- Remove as duas assinaturas: (text, boolean, text) do fluxo Stripe e uma
+-- (text) mais antiga que ainda existe em produção com outro tipo de retorno.
 DROP FUNCTION IF EXISTS public.create_tenant_and_profile(text, boolean, text);
+DROP FUNCTION IF EXISTS public.create_tenant_and_profile(text);
 
 CREATE OR REPLACE FUNCTION public.create_tenant_and_profile(user_full_name text)
 RETURNS uuid
@@ -79,3 +84,5 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.create_tenant_and_profile(text) FROM public, anon;
 GRANT EXECUTE ON FUNCTION public.create_tenant_and_profile(text) TO authenticated;
+
+COMMIT;
