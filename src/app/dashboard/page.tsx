@@ -2,16 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
-  Users, Wrench, FileText, ArrowRight, TrendingUp, Clock,
-  ChevronLeft, ChevronRight, ArrowUp, ArrowDown,
+  Users, Wrench, FileText, ArrowRight, TrendingUp, Clock, ArrowUp, ArrowDown,
 } from "lucide-react";
 import {
-  addMonths, compareMonths, currentMonth, monthKey, monthLabel, monthStartISO, parseMonthParam,
+  addMonths, monthFirstDate, monthKey, monthLabel, monthStartISO, parseMonthParam,
 } from "@/lib/dashboard/months";
 import {
-  buildMonthlyReport, SERIES_LENGTH, type CreatedQuote, type DeliveredQuote,
+  buildMonthlyReport, SERIES_LENGTH, type CreatedQuote, type DeliveredQuote, type ExpenseAmount,
 } from "@/lib/dashboard/monthly-report";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
+import { MonthSelector } from "@/components/dashboard/month-selector";
 
 function brl(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -29,20 +29,25 @@ async function fetchAll<T>(query: (from: number, to: number) => PromiseLike<{ da
   }
 }
 
-function Delta({ current, previous, kind }: { current: number; previous: number; kind: "percent" | "absolute" }) {
+function Delta({
+  current, previous, kind, upIsGood = true, emptyPrevLabel = "sem valor no mês anterior",
+}: {
+  current: number; previous: number; kind: "percent" | "absolute"; upIsGood?: boolean; emptyPrevLabel?: string;
+}) {
   if (previous === 0 && current === 0) return <span className="text-gray-400 dark:text-zinc-500">igual ao mês anterior</span>;
-  if (kind === "percent" && previous === 0) return <span className="text-gray-400 dark:text-zinc-500">sem faturamento no mês anterior</span>;
+  if (kind === "percent" && previous <= 0) return <span className="text-gray-400 dark:text-zinc-500">{emptyPrevLabel}</span>;
 
   const diff = current - previous;
   if (diff === 0) return <span className="text-gray-400 dark:text-zinc-500">igual ao mês anterior</span>;
 
   const up = diff > 0;
+  const good = up === upIsGood;
   const Icon = up ? ArrowUp : ArrowDown;
   const text = kind === "percent"
-    ? `${Math.abs(Math.round((diff / previous) * 100))}%`
+    ? `${Math.abs(Math.round((diff / Math.abs(previous)) * 100))}%`
     : `${Math.abs(diff)}`;
   return (
-    <span className={`inline-flex items-center gap-0.5 font-medium ${up ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+    <span className={`inline-flex items-center gap-0.5 font-medium ${good ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
       <Icon className="w-3 h-3" />
       {text}
       <span className="font-normal text-gray-400 dark:text-zinc-500 ml-1">vs mês anterior</span>
@@ -61,14 +66,13 @@ export default async function DashboardPage({
 
   const { mes } = await searchParams;
   const selected = parseMonthParam(mes);
-  const isCurrent = compareMonths(selected, currentMonth()) === 0;
   const prevMonth = addMonths(selected, -1);
   const nextMonth = addMonths(selected, 1);
 
   const windowStart = monthStartISO(addMonths(selected, -(SERIES_LENGTH - 1)));
   const selectedEnd = monthStartISO(nextMonth);
 
-  const [delivered, created, openRes, clientsRes, servicesRes, quotesCountRes] = await Promise.all([
+  const [delivered, created, expenses, openRes, clientsRes, servicesRes, quotesCountRes] = await Promise.all([
     fetchAll<DeliveredQuote>((from, to) =>
       supabase
         .from("quotes")
@@ -89,6 +93,16 @@ export default async function DashboardPage({
         .order("id")
         .range(from, to)
     ),
+    fetchAll<ExpenseAmount>((from, to) =>
+      supabase
+        .from("expenses")
+        .select("amount, expense_date")
+        .gte("expense_date", monthFirstDate(addMonths(selected, -(SERIES_LENGTH - 1))))
+        .lt("expense_date", monthFirstDate(nextMonth))
+        .order("expense_date")
+        .order("id")
+        .range(from, to)
+    ),
     // Situação atual (não depende do mês)
     supabase
       .from("quotes")
@@ -99,7 +113,7 @@ export default async function DashboardPage({
     supabase.from("quotes").select("id", { count: "exact", head: true }),
   ]);
 
-  const report = buildMonthlyReport(selected, delivered, created);
+  const report = buildMonthlyReport(selected, delivered, created, expenses);
 
   const open = openRes.data ?? [];
   const aguardando = open.filter((q) => q.status === "Aguardando Aprovacao");
@@ -144,7 +158,6 @@ export default async function DashboardPage({
 
   const tileCls = "bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm";
   const tileLabel = "text-gray-400 dark:text-zinc-500 text-xs uppercase tracking-wider mb-3";
-  const navBtn = "w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-zinc-100 transition-colors";
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -156,42 +169,38 @@ export default async function DashboardPage({
           <p className="text-gray-400 dark:text-zinc-500 text-sm mt-1">Resultado do mês e situação atual</p>
         </div>
 
-        {/* Seletor de mês */}
-        <div className="flex items-center gap-1 self-start sm:self-auto">
-          <Link href={`/dashboard?mes=${monthKey(prevMonth)}`} className={navBtn} aria-label="Mês anterior">
-            <ChevronLeft className="w-4 h-4" />
-          </Link>
-          <span className="min-w-36 text-center font-display font-bold uppercase tracking-wide text-gray-900 dark:text-zinc-100">
-            {monthLabel(selected)}
-          </span>
-          {isCurrent ? (
-            <span className={`${navBtn} opacity-30 pointer-events-none`} aria-hidden>
-              <ChevronRight className="w-4 h-4" />
-            </span>
-          ) : (
-            <Link href={`/dashboard?mes=${monthKey(nextMonth)}`} className={navBtn} aria-label="Próximo mês">
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          )}
-          {!isCurrent && (
-            <Link href="/dashboard" className="ml-2 text-xs text-amber-600 dark:text-amber-400 hover:underline">
-              Mês atual
-            </Link>
-          )}
-        </div>
+        <MonthSelector selected={selected} basePath="/dashboard" />
       </div>
 
       {/* Resultado do mês */}
       <section className="mb-8">
         <p className="text-gray-400 dark:text-zinc-500 text-xs uppercase tracking-[0.2em] mb-3">Resultado do mês</p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className={`${tileCls} col-span-2 lg:col-span-1 border-green-200 dark:border-green-500/20 bg-green-50 dark:bg-green-500/5`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={`${tileCls} border-green-200 dark:border-green-500/20 bg-green-50 dark:bg-green-500/5`}>
             <p className={tileLabel}>Faturado</p>
             <p className="font-display font-black text-3xl leading-none text-green-600 dark:text-green-400 tabular-nums">
               {brl(report.revenue)}
             </p>
             <p className="text-xs mt-2">
-              <Delta current={report.revenue} previous={report.prevRevenue} kind="percent" />
+              <Delta current={report.revenue} previous={report.prevRevenue} kind="percent" emptyPrevLabel="sem faturamento no mês anterior" />
+            </p>
+          </div>
+          <Link href={`/dashboard/custos?mes=${monthKey(selected)}`} className={`${tileCls} hover:border-gray-300 dark:hover:border-zinc-700 transition-colors`}>
+            <p className={tileLabel}>Custos</p>
+            <p className="font-display font-black text-3xl leading-none text-gray-900 dark:text-zinc-100 tabular-nums">
+              {brl(report.costs)}
+            </p>
+            <p className="text-xs mt-2">
+              <Delta current={report.costs} previous={report.prevCosts} kind="percent" upIsGood={false} emptyPrevLabel="sem custos no mês anterior" />
+            </p>
+          </Link>
+          <div className={`${tileCls} ${report.profit < 0 ? "border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5" : ""}`}>
+            <p className={tileLabel}>{report.profit < 0 ? "Prejuízo" : "Lucro"}</p>
+            <p className={`font-display font-black text-3xl leading-none tabular-nums ${report.profit < 0 ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-zinc-100"}`}>
+              {brl(report.profit)}
+            </p>
+            <p className="text-xs mt-2 text-gray-400 dark:text-zinc-500">
+              {report.margin === null ? "sem faturamento no mês" : `margem de ${Math.round(report.margin * 100)}%`}
             </p>
           </div>
           <div className={tileCls}>
@@ -212,7 +221,7 @@ export default async function DashboardPage({
               {report.delivered} entrega{report.delivered !== 1 ? "s" : ""} no mês
             </p>
           </div>
-          <div className={`${tileCls} col-span-2 lg:col-span-1`}>
+          <div className={tileCls}>
             <p className={tileLabel}>Conversão</p>
             <p className="font-display font-black text-3xl leading-none text-gray-900 dark:text-zinc-100 tabular-nums">
               {report.conversion === null ? "—" : `${Math.round(report.conversion * 100)}%`}

@@ -111,14 +111,17 @@ export function RevenueChart({ series, selected }: { series: MonthPoint[]; selec
       {/* Tabela — mesmos valores sem depender de hover/cor */}
       <details className="mt-4 group/details">
         <summary className="text-xs text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 cursor-pointer select-none w-fit">
-          Ver em tabela
+          Ver tabela com custos e lucro
         </summary>
-        <table className="w-full text-sm mt-3">
+        <div className="overflow-x-auto mt-3">
+        <table className="w-full text-sm min-w-[420px]">
           <thead>
             <tr className="text-left text-xs text-gray-400 dark:text-zinc-500 border-b border-gray-100 dark:border-zinc-800">
               <th className="py-1.5 font-medium">Mês</th>
               <th className="py-1.5 font-medium text-right">Entregues</th>
               <th className="py-1.5 font-medium text-right">Faturado</th>
+              <th className="py-1.5 font-medium text-right">Custos</th>
+              <th className="py-1.5 font-medium text-right">Lucro</th>
             </tr>
           </thead>
           <tbody>
@@ -127,10 +130,15 @@ export function RevenueChart({ series, selected }: { series: MonthPoint[]; selec
                 <td className="py-1.5 capitalize text-gray-700 dark:text-zinc-300">{monthLabel(p.month)}</td>
                 <td className="py-1.5 text-right tabular-nums text-gray-500 dark:text-zinc-400">{p.delivered}</td>
                 <td className="py-1.5 text-right tabular-nums text-gray-900 dark:text-zinc-100">{brl(p.revenue)}</td>
+                <td className="py-1.5 text-right tabular-nums text-gray-500 dark:text-zinc-400">{brl(p.costs)}</td>
+                <td className={`py-1.5 text-right tabular-nums font-medium ${p.revenue - p.costs < 0 ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-zinc-100"}`}>
+                  {brl(p.revenue - p.costs)}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </details>
     </div>
   );

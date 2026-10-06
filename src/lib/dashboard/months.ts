@@ -47,6 +47,25 @@ export function monthOf(timestamp: string): Month {
   return currentMonth(new Date(timestamp));
 }
 
+/** Primeiro dia do mês como data pura (YYYY-MM-DD) — para colunas `date`. */
+export function monthFirstDate(m: Month): string {
+  return `${monthKey(m)}-01`;
+}
+
+/** Mês de uma data pura (YYYY-MM-DD) — sem fuso, a data já é local. */
+export function monthOfDate(date: string): Month {
+  return { year: Number(date.slice(0, 4)), month: Number(date.slice(5, 7)) };
+}
+
+export function daysInMonth({ year, month }: Month): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/** Hoje (em São Paulo) como data pura YYYY-MM-DD. */
+export function todayDate(now: Date = new Date()): string {
+  return new Date(now.getTime() - SP_OFFSET_HOURS * 3600_000).toISOString().slice(0, 10);
+}
+
 export function monthLabel({ year, month }: Month): string {
   return `${NAMES[month - 1]} ${year}`;
 }
